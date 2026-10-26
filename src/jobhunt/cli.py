@@ -926,6 +926,19 @@ def cmd_run(args) -> None:
         f"Files in {workspace_dir().resolve()}")
 
 
+def cmd_agent_install(args) -> None:
+    from .agent_install import install
+
+    try:
+        installed = install(Path.cwd(), args.platform, update=args.update)
+    except OSError as exc:
+        sys.exit(f"error: cannot install agent skills: {exc}")
+    for path, status in installed:
+        print(f"{status}: {path.relative_to(Path.cwd())}")
+    print("Restart your local assistant in this folder, then ask it to use the job-hunt-agent skill.")
+    print("This installs project-local instructions only, not assistant apps, accounts or model credentials.")
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="jobhunt", description=__doc__)
     p.add_argument("-v", "--verbose", action="store_true")
@@ -940,6 +953,11 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("init", help="create config/profile.yaml and config/sites.yaml")
     s.add_argument("--dir", help="config directory (default: config, or the selected person's directory)")
     s.set_defaults(fn=cmd_init)
+
+    s = sub.add_parser("agent-install", help="register this checkout's skill with local AI assistants")
+    s.add_argument("platform", choices=["claude", "codex", "gemini", "copilot", "all"], default="all", nargs="?")
+    s.add_argument("--update", action="store_true", help="replace a previously generated skill with current rules")
+    s.set_defaults(fn=cmd_agent_install)
 
     s = sub.add_parser("doctor", parents=[common], help="check your setup and say what to fix")
     s.add_argument("--sites", help="job sites YAML (default: selected person's sites)")

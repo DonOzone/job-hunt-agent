@@ -1,10 +1,13 @@
 # job-hunt-agent 🧭
 
-A **local, private job-hunt assistant** you run from a terminal (or drive through GitHub Copilot / any coding agent).
+A **local job-hunt assistant** you run from a terminal or drive through **Claude Code, ChatGPT via Codex,
+Gemini CLI, or GitHub Copilot**.
 It finds jobs, ranks them, compares them to your CV, tells you what to learn, helps you rewrite your CV and apply,
 and keeps a timestamped record of everything — all on your own machine.
 
 > **No API keys or accounts are required.** Everything optional (phone notifications, Teams/Slack) is one line in `.env`.
+> This applies to the standalone CLI. AI platforms require their own authentication and may require a paid plan;
+> files shared with an AI assistant are subject to that provider's data policies.
 
 ```mermaid
 flowchart LR
@@ -34,6 +37,7 @@ Start with the quick start below, or see [step-by-step workflows with detailed d
 7. [Where your data lives](#7-where-your-data-lives)
 8. [Notifications](#8-notifications)
 9. [Using it with Copilot / agents](#9-using-it-with-copilot--agents)
+   - [Install and use Claude, ChatGPT/Codex, Gemini and Copilot](docs/platforms.md)
 10. [Guardrails](#10-guardrails)
 11. [Troubleshooting](#11-troubleshooting)
 12. [Development](#12-development)
@@ -338,6 +342,7 @@ present it honestly. Paid LinkedIn Learning is often free via an employer, libra
 | 10. Interview prep and practice | `interview-prep <job>`, `mock-interview <job>` (`--mode flashcards`, `--list`, `--weak-only`) |
 | CV | `cv-import`, `cv-export`, `cv-review`, `tailor` |
 | Setup and people | `init`, `doctor`, `profile-from-cv`, `profiles`; `--person <id>` on any command |
+| Local AI integrations | `agent-install [claude\|codex\|gemini\|copilot\|all]` (default: all); `--update` refreshes generated skills |
 
 Every command has `--help`. Jobs can be referred to by **rank** (`1`, `2` …) or **ID**.
 
@@ -412,6 +417,31 @@ Set in `.env` (or the `notify:` block in the profile):
 | Desktop | `JOBHUNT_DESKTOP=1` (Windows built-in; Linux needs `notify-send`) |
 
 ## 9. Using it with Copilot / agents
+
+Install the CLI once using [Quick start](#1-quick-start-10-minutes), then follow the
+**[platform installation and usage guide](docs/platforms.md)** for Claude Code, ChatGPT via OpenAI Codex,
+Gemini CLI, or GitHub Copilot (VS Code and CLI). It includes authentication, launch commands,
+copyable prompts, command mappings and troubleshooting.
+
+**Add it to your local agents with one command** from this checkout:
+
+```bash
+uv run jobhunt agent-install          # all four platforms
+# Or just one: uv run jobhunt agent-install claude
+```
+
+Restart your assistant in this folder and ask it to **"Use the job-hunt-agent skill to find five jobs."**
+The installer registers project-local skills without changing other skills, settings or credentials.
+Install and sign in to the assistant itself separately using the platform guide.
+
+Each local agent runs the **same `jobhunt` commands** through its terminal tool; no model API key,
+plugin or MCP server is needed by this project. Ordinary Claude/ChatGPT/Gemini web chats cannot
+execute commands on your computer just by receiving a repository link.
+
+[`CLAUDE.md`](CLAUDE.md), [`GEMINI.md`](GEMINI.md), [`AGENTS.md`](AGENTS.md) and
+[`.github/copilot-instructions.md`](.github/copilot-instructions.md) point agents to shared rules
+and workflows. Keep terminal permissions on approval, and use a local checkout for your personal files.
+Git-ignored data is still readable by an authorized agent; approve provider processing before sharing it.
 
 Agent skills live in [`.github/skills/`](.github/skills) — job search, CV review, CV gap analysis, adding jobs and
 job memory, ramp-up learning paths, job-specific CV + cover-letter packages (`job-application`),
