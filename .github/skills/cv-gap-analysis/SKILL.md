@@ -11,7 +11,8 @@ description: Compare the user's CV with found jobs, rank missing skills by impor
    with curated courses/certifications from `src/jobhunt/data/courses.yaml`. Report: `workspace/skill-gaps.md`.
    Decisions steer it: jobs the user shortlisted (×1.5) or is preparing/applied to (×2) count more; skipped or
    closed jobs are ignored - so record decisions with `jobhunt memory decide <job> ...`.
-4. `jobhunt study-plan --hours 6` — week-by-week plan with check-in assessments.
-5. If a skill is missing from the taxonomy, add it to `src/jobhunt/data/skills.yaml` (use `case_sensitive: true`
+4. `jobhunt ramp-up` — learning path (user's own list, curated, open materials); see the `skill-ramp-up` skill.
+5. `jobhunt study-plan --hours 6` — week-by-week plan with check-in assessments.
+6. If a skill is missing from the taxonomy, add it to `src/jobhunt/data/skills.yaml` (use `case_sensitive: true`
    for words that are also common English, e.g. "Go"). Add good courses to `courses.yaml`.
-6. Log key insight: `jobhunt journal log "Top gap is X; starting course Y" --kind learning`.
+7. Log key insight: `jobhunt journal log "Top gap is X; starting course Y" --kind learning`.
