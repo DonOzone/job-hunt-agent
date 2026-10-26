@@ -12,7 +12,9 @@ log it with `jobhunt track add <job> applied`.
 1. Check fit first: `jobhunt fit <job-id-or-rank>` (gates + score). If a gate fails, tell the user why.
 2. Prefer `jobhunt prepare <job>` (see `prepare-application`) so a tailored CV, cover letter and answers exist;
    upload the tailored `.docx` from `workspace/applications/<job>/` when the form asks for a CV.
-3. Run `jobhunt apply <job-id-or-rank>`. A visible browser opens, profile fields + CV are pre-filled, a screenshot
+3. Run `jobhunt apply <job-id-or-rank> --cv <kit>/cv-final.docx` to upload the reviewed CV (without `--cv`,
+   the baseline is uploaded). For a named person, add `--person <id>` on every command.
+   A visible browser opens, profile fields + CV are pre-filled, a screenshot
    is saved to `workspace/screenshots/`, and the user is pinged with what still needs their input.
    Saved answers for recurring questions live in `profile.yaml` → `answers`.
 4. The user reviews and submits, then confirms with `y` (or `s` to skip). `--auto-submit` only clicks submit when

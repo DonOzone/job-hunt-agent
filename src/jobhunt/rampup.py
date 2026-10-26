@@ -9,11 +9,10 @@ from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import quote_plus
 
-from .config import load_data, load_yaml
+from .config import load_data, load_yaml, personal_dir
 from .cv import taxonomy
 from .gaps import Gap
 
-DEFAULT_RESOURCE_FILES = ["me/learning-resources.yaml", "me/learning-resources.csv", "me/learning-resources.md"]
 URL_RE = re.compile(r"https?://\S+")
 
 
@@ -98,7 +97,8 @@ def _from_text(text: str) -> list[Resource]:
 
 def load_user_resources(path: str | Path | None = None) -> list[Resource]:
     """Your own list. YAML: a list of {skill, name, url, hours, free}; or `Skill | Title | URL | hours` text/CSV/MD."""
-    candidates = [Path(path)] if path else [Path(p) for p in DEFAULT_RESOURCE_FILES]
+    candidates = [Path(path)] if path else [personal_dir() / f"learning-resources.{ext}"
+                                          for ext in ("yaml", "csv", "md")]
     for p in candidates:
         if not p.exists():
             if path:

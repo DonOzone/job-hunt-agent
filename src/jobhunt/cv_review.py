@@ -257,9 +257,9 @@ def review(cv_text: str, jobs: list[Job], target: str) -> Review:
                             for m in re.finditer(rf"\b{c}\b", cv_text, re.I)})
 
     top = matched[:3]
-    summary = (f"{title} with {f'{years}+ years' if years else 'hands-on experience'} delivering production work"
-               + (f" with {', '.join(top[:-1]) + ' and ' + top[-1] if len(top) > 1 else top[0]}" if top else "")
-               + ". [Your headline achievement with a number.]")
+    # The posting's title is a target, not evidence that the candidate has held that title or worked in production.
+    summary = (("Experience with " + (', '.join(top[:-1]) + ' and ' + top[-1] if len(top) > 1 else top[0]) + ". ")
+               if top else "") + "[Your relevant experience and headline achievement, with a real number if available.]"
 
     return Review(target, sorted({j.title for j in jobs}), score, weights, matched, missing, terminology, buried,
                   skills_order, bullets, checks, summary, found_cliches)
