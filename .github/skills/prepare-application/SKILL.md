@@ -5,6 +5,9 @@ description: Build a complete application kit for a job the user selected (fit c
 
 # Prepare an application for a selected job
 
+For the CV + cover-letter workflow, see `job-application` (`jobhunt application <job>`).
+For a named person, add `--person <id>` to every command; no selection carries over to the next command.
+
 1. Let the user choose: `jobhunt pick` (interactive) or use the rank/ID they gave.
 2. `jobhunt prepare <job>` — runs the fit gates first (blocked jobs need the user's OK → `--force`), then writes
    `workspace/applications/<job>/`: fit report, CV review + tailored draft (.md/.docx; `--no-docx` to skip),
@@ -15,6 +18,7 @@ description: Build a complete application kit for a job the user selected (fit c
 4. Review the kit with the user: confirm every CV change and every form answer (salary, visa, notice period come from
    `profile.yaml → answers`; never guess them). Replace any `[placeholder]` with real facts.
 5. Run `jobhunt review <job>` (see `application-review`) until there are no ⛔/⚠️ items.
-6. Apply: `jobhunt prepare <job> --apply` or `jobhunt apply <job>` (see the `apply-job` skill). The user submits.
+6. Export the reviewed final CV, then `jobhunt apply <job> --cv <kit>/cv-final.docx`
+   (see the `apply-job` skill). The user submits; supply the approved cover letter manually if requested.
 7. Afterwards: `jobhunt track add <job> applied`, `jobhunt memory decide <job> applied`,
    `jobhunt interview-prep <job>`, and `jobhunt track followups --days 7`.

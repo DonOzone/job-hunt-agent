@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import os
+import re
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, field
 from importlib import resources
 from pathlib import Path
@@ -20,6 +23,32 @@ REGION_ALIASES = {"AFRICA": "MEA", "MIDDLE EAST": "MEA", "EUROPE": "EU", "EMEA":
 
 # Credentials/secrets are read from the environment (or a local .env file), never from committed YAML.
 ENV_NOTIFY = {"JOBHUNT_NTFY_TOPIC": "ntfy_topic", "JOBHUNT_WEBHOOK_URL": "webhook_url", "JOBHUNT_DESKTOP": "desktop"}
+_PERSON: ContextVar[str | None] = ContextVar("jobhunt_person", default=None)
+
+
+@contextmanager
+def person_scope(person: str | None):
+    """Select one person's storage for a command, restoring it even when a command fails."""
+    if person is not None and not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,63}", person):
+        raise ValueError("--person must be 1-64 lowercase letters, digits, underscores or hyphens")
+    token = _PERSON.set(person)
+    try:
+        yield
+    finally:
+        _PERSON.reset(token)
+
+
+def personal_dir() -> Path:
+    person = _PERSON.get()
+    return Path("me") / "profiles" / person if person else Path("me")
+
+
+def default_profile_path() -> Path:
+    return personal_dir() / "profile.yaml" if _PERSON.get() else Path("config/profile.yaml")
+
+
+def default_sites_path() -> Path:
+    return personal_dir() / "sites.yaml" if _PERSON.get() else Path("config/sites.yaml")
 
 
 def load_dotenv(path: str | Path = ".env") -> None:
@@ -38,6 +67,8 @@ def load_dotenv(path: str | Path = ".env") -> None:
 def workspace_dir() -> Path:
     """Local folder that stores jobs, tracker DB, journal and reports."""
     path = Path(os.environ.get("JOBHUNT_HOME", "workspace")).expanduser()
+    if person := _PERSON.get():
+        path = path / "people" / person
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -108,7 +139,8 @@ class Profile:
         profile = cls(requirement=req, fx_to_usd=fx, **known)
         profile.preferred_regions = [REGION_ALIASES.get(r.upper(), r.upper()) for r in profile.preferred_regions]
         profile.notify = dict(profile.notify or {})
-        for env, key in ENV_NOTIFY.items():
+        # A shared .env must not send another person's application details to the default user's channels.
+        for env, key in (ENV_NOTIFY.items() if _PERSON.get() is None else []):
             if os.environ.get(env):
                 profile.notify[key] = os.environ[env] if key != "desktop" else os.environ[env] not in ("0", "false")
         return profile

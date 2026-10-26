@@ -6,11 +6,26 @@ and keeps a timestamped record of everything — all on your own machine.
 
 > **No API keys or accounts are required.** Everything optional (phone notifications, Teams/Slack) is one line in `.env`.
 
+```mermaid
+flowchart LR
+    Profile["Select person and import CV"] --> Jobs["Find or add jobs"]
+    Jobs --> Fit["Rank and check fit"]
+    Fit --> Application["Tailored CV + cover letter"]
+    Application --> Review["Review and approve"]
+    Review --> Apply["Apply and track"]
+    Fit --> Gaps["Skill gaps and ramp-up"]
+    Gaps --> Evidence["Learn and build evidence"]
+    Evidence --> Profile
+```
+
+Start with the quick start below, or see [step-by-step workflows with detailed diagrams](docs/workflows.md).
+
 ---
 
 ## Contents
 1. [Quick start (10 minutes)](#1-quick-start-10-minutes)
 2. [What you need to fill in](#2-what-you-need-to-fill-in)
+   - [Multiple people and CV-derived profiles](#multiple-people-and-cv-derived-profiles)
 3. [Your CV — format, import and export](#3-your-cv--format-import-and-export)
 4. [Daily workflow](#4-daily-workflow)
 5. ["I found a job myself" — add, check, apply](#5-i-found-a-job-myself--add-check-apply)
@@ -40,7 +55,7 @@ git clone https://github.com/DonOzone/job-hunt-agent.git && cd job-hunt-agent
 uv sync --all-extras                    # creates .venv with the exact locked versions (uv.lock)
 uv run playwright install chromium      # only for the apply assistant / browser sources
 uv run jobhunt init                     # creates config/profile.yaml, config/sites.yaml and .env
-uv run jobhunt cv-import "C:\path\to\My CV.docx"      # or ~/Documents/my-cv.docx
+uv run jobhunt cv-import "C:\path\to\My CV.docx" --populate-profile  # or ~/Documents/my-cv.docx
 uv run jobhunt doctor                   # tells you exactly what is still missing
 uv run jobhunt daily
 ```
@@ -88,6 +103,44 @@ Everywhere below, `jobhunt …` means `uv run jobhunt …` if you chose Option A
 | `.env` | Optional | Notification settings and workspace location ([example](.env.example)) |
 
 All four are **git-ignored** — your personal details never leave your machine.
+
+### Multiple people and CV-derived profiles
+
+Use an explicit `--person <id>` for every command when helping different people:
+
+```bash
+uv run jobhunt --person jane init
+uv run jobhunt --person jane cv-import "path/to/Jane CV.docx" --populate-profile
+# Review me/profiles/jane/profile.yaml: contacts, roles, regions, work rights, salary, answers.
+uv run jobhunt --person jane doctor
+uv run jobhunt --person jane daily
+
+uv run jobhunt --person alex init
+uv run jobhunt --person alex cv-import "path/to/Alex CV.docx" --populate-profile
+uv run jobhunt profiles                      # list person IDs
+uv run jobhunt --person alex application 1   # Alex's job list, CV and application history
+```
+
+The CV can supply **explicit header name, email, phone, LinkedIn, GitHub and location**; existing nonempty profile
+values are kept and conflicting fields are reported for manual review. `jobhunt profile-from-cv <CV>` can also
+create/fill a profile without copying the CV; omit the file to use the selected baseline.
+Only clear contact fields are extracted: work authorization, nationality, target roles, salary and preferences
+must be supplied by the person. New named profiles start without the sample person's identity or claims.
+With the default sample config, replace the example values yourself; extraction will not overwrite them.
+
+```mermaid
+flowchart LR
+    Jane["--person jane"] --> JP["me/profiles/jane: profile, sites, CVs and learning list"]
+    Jane --> JW["workspace/people/jane: jobs, applications, journal and browser state"]
+    Alex["--person alex"] --> AP["me/profiles/alex: profile, sites, CVs and learning list"]
+    Alex --> AW["workspace/people/alex: jobs, applications, journal and browser state"]
+```
+
+No `--person` keeps the original single-user setup. Selection never persists between commands.
+`--profile file.yaml` changes settings **only**: use `--person` to isolate people.
+All named-person directories are git-ignored; local separation is not encryption or filesystem access control.
+Shared `.env` notification channels are not inherited by named people: configure each profile's `notify` explicitly.
+See the [profile and storage walkthrough](docs/workflows.md#level-1-select-a-person-and-build-a-baseline).
 
 **Profile — the fields that matter most**
 
@@ -155,7 +208,8 @@ It never invents skills or inflates your role ("contributed to" is never turned 
 |---|---|
 | **Start from nothing** (once) | `init` → `cv-import` → edit `config/profile.yaml` → `doctor` |
 | **Hunt every day** (5 min) | `daily` → `list` → `fit --top 5` → `pick` → `track followups` |
-| **Apply to a job I found myself** | `add <url>` → `fit` → `prepare` → edit drafts → `research` → `review` → `apply` → `track` |
+| **Apply to a job I found myself** | `add <url>` → `fit` → `application` → edit drafts → `research` → `review` → export final CV → `apply --cv <final.docx>` → `track` |
+| **Help different people** | `--person <id> init` → `cv-import --populate-profile` → review settings → use `--person <id>` on every command |
 | **Close my skill gaps** | `gaps` → `ramp-up` → learn and build → `ramp-up log` → `assess` → update CV (`cv-review`) |
 | **Prepare for an interview** | `track update <app> interview` → `interview-prep <job>` → `assess <skill>` |
 | **Weekly review** (15 min) | `track dashboard` → `track sweep` → `gaps` → `journal show` |
@@ -183,24 +237,52 @@ jobhunt add https://boards.greenhouse.io/acme/jobs/123        # reads the postin
 jobhunt add --paste                                           # or paste the description (LinkedIn etc.)
 jobhunt add https://linkedin.com/jobs/view/1 --file job.txt   # URL for reference + saved text
 jobhunt fit <id>                                              # gates + fit score + red flags
-jobhunt prepare <id>                                          # application kit (see below)
+jobhunt application <id>                                      # tailored CV + cover letter + evidence map (prepare also works)
 jobhunt research <id>                                         # company notes, cached per company
 jobhunt review <id>                                           # hiring-manager check: ready to send?
-jobhunt apply <id>                                            # opens the form, pre-fills it, you submit
+jobhunt apply <id> --cv <kit>/cv-final.docx                     # uses your reviewed CV; you submit
 jobhunt track update <app-id> interview --next "Prep system design"
 jobhunt memory list                                           # everything you've reviewed + your decisions
 jobhunt memory note <id> "Recruiter said budget is fixed"       # learnings per job
 jobhunt memory decide <id> skip                               # hide jobs you rejected
 ```
 
-`prepare` builds `workspace/applications/<job>/`: fit report, tailored CV draft (.md + .docx), cover letter,
-form answers, interview prep, questions to ask, a checklist and `review.md`. Postings are checked for hidden text,
+`application` (or `prepare`) builds `workspace/applications/<job>/`: fit report, tailored CV draft (.md + .docx),
+cover letter (.md + .docx), `requirements.md` mapping recognised requirements to baseline evidence,
+`cv-changes.diff` showing every proposed CV change, form answers, interview prep, questions to ask,
+a checklist and `review.md`. For a named person, the kit is in `workspace/people/<id>/applications/`.
+Postings are checked for hidden text,
 prompt-injection and scam signals before anything else happens.
+
+```mermaid
+flowchart TD
+    Job["Given job + selected person's baseline"] --> Fit["Check fit and posting integrity"]
+    Fit --> Draft["application: CV, cover letter, evidence map and diff"]
+    Draft --> Edit["Confirm facts and edit final documents"]
+    Edit --> Research["Sourced company research"]
+    Research --> Review["review"]
+    Review --> Ready{"Ready?"}
+    Ready -->|No| Edit
+    Ready -->|Yes| Export["Export final CV and inspect Word files"]
+    Export --> Submit["Human approves and submits"]
+```
+
+**Aim for the strongest truthful match, not an invented perfect match.** The workflow rewords supported experience,
+surfaces relevant skills and mirrors equivalent terminology. Missing skills and credentials stay gaps until
+confirmed with evidence. Always review the full posting for requirements outside the keyword taxonomy.
+The baseline CV is not overwritten.
 
 **Before you send:** edit the drafts (optionally save them as `cv-final.md` / `cover-letter-final.md`), fill in
 `jobhunt research <id>`, then run `jobhunt review <id>`. It flags, in order:
 ⛔ unfilled placeholders · ⚠️ skills or numbers that aren't in your baseline CV, length, a letter that doesn't name
 the company, skills you have but hid · 💡 clichés and your own `writing_style.avoid_words`.
+
+Export your approved CV with `jobhunt cv-export <kit>/cv-final.md --out <kit>/cv-final.docx`.
+Markdown edits do not update Word automatically. The cover-letter Word file is also a draft snapshot; finalise it
+in Word or paste the approved letter text into the form. `apply --cv <file>` uploads that exact CV; without `--cv`,
+it uses the baseline. Supply the cover letter manually when requested. Re-running `application` replaces draft
+files but preserves files saved under the final names.
+See the [detailed application workflow](docs/workflows.md#level-2-one-posting-to-application-documents).
 
 **After you send:** quiet for 7 days → `jobhunt track followups` drafts a short note; log it with
 `jobhunt track sent <app-id>`. After two follow-ups or 60 days of silence, `jobhunt track sweep` closes it as ghosted.
@@ -250,11 +332,12 @@ present it honestly. Paid LinkedIn Learning is often free via an employer, libra
 | 5. Local progress & learnings | `journal log/show`, `memory` |
 | 6. Timestamped application tracking | `track add/update/list/history/report/followups/sent/sweep/dashboard` |
 | 7. Assisted applying (Playwright) | `prepare`, `research`, `review`, `pick`, `apply` (`--dry-run`, `--headless`) |
+| Job-specific CV + cover letter with evidence and change review | `application <job>` (same gates and kit as `prepare`) |
 | 8. Mindset & strategy ("Who Moved My Cheese?" + best practices) | `insights` |
 | 9. Skill evaluation | `assess <skill>` (quiz), `assess --self`, `assess --list` |
 | 10. Interview prep | `interview-prep <job>` |
 | CV | `cv-import`, `cv-export`, `cv-review`, `tailor` |
-| Setup | `init`, `doctor` |
+| Setup and people | `init`, `doctor`, `profile-from-cv`, `profiles`; `--person <id>` on any command |
 
 Every command has `--help`. Jobs can be referred to by **rank** (`1`, `2` …) or **ID**.
 
@@ -264,7 +347,9 @@ Every command has `--help`. Jobs can be referred to by **rank** (`1`, `2` …) o
 config/profile.yaml   config/sites.yaml   .env     # your settings (git-ignored)
 me/cv/                                             # your baseline CV, variants, originals (git-ignored)
 me/learning-resources.yaml                         # your own learning list for `ramp-up` (optional)
+me/profiles/<person>/                              # named person's profile.yaml, sites.yaml, cv/, learning list
 workspace/                                         # everything generated (git-ignored; JOBHUNT_HOME)
+  people/<person>/      separate copy of all state below, including browser-profile/ cookies
   jobs.json             latest ranked search results
   tracker.db            applications + timestamped history (SQLite)
   memory/               your own jobs + reviewed-jobs.md (notes, decisions)
@@ -292,7 +377,8 @@ Set in `.env` (or the `notify:` block in the profile):
 ## 9. Using it with Copilot / agents
 
 Agent skills live in [`.github/skills/`](.github/skills) — job search, CV review, CV gap analysis, adding jobs and
-job memory, ramp-up learning paths, preparing applications, application review, applying, tracking, skill evaluation and interview prep. Ask in plain language,
+job memory, ramp-up learning paths, job-specific CV + cover-letter packages (`job-application`),
+preparing applications, application review, applying, tracking, skill evaluation and interview prep. Ask in plain language,
 e.g. *"review my CV for job 2"*, *"I found this job: <url> — am I a fit?"*, *"help me apply to the Stripe role"*.
 See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
 [`docs/ai-job-search-insights.md`](docs/ai-job-search-insights.md) for ideas adopted from ai-job-search.
@@ -312,6 +398,8 @@ See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
 |---|---|
 | `jobhunt` not found | Use `uv run jobhunt …`, or activate the venv, or run `python -m jobhunt` |
 | `uv` not found | Install it (see Quick start) and reopen the terminal |
+| Wrong person's job list or CV | Stop; specify `--person <id>` on every command. `--profile` alone does not isolate state |
+| CV contact extraction kept example values | It fills empty fields only. Replace examples in the default profile or start a blank named profile |
 | `ramp-up` says no gaps | Add jobs first (`search` / `add`), or name skills: `ramp-up --skills "Kubernetes"` |
 | PowerShell blocks `Activate.ps1` | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
 | No jobs found | `jobhunt search --no-filter` to see if filters are too strict; check `requirement.roles` |

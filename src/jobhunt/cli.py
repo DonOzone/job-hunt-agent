@@ -7,11 +7,21 @@ import logging
 import os
 import shutil
 import sys
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
 from . import __version__, assessment, gaps, insights, interview, journal, memory, rampup, ranking, tailor
-from .config import Profile, load_dotenv, load_sites, workspace_dir
+from .config import (
+    Profile,
+    default_profile_path,
+    default_sites_path,
+    load_dotenv,
+    load_sites,
+    person_scope,
+    personal_dir,
+    workspace_dir,
+)
 from .cv import extract_skills, match_job, read_cv
 from .matcher import filter_jobs
 from .notify import Notifier
@@ -70,7 +80,10 @@ def _sync_memory(job_id: str, status: str, note: str | None = None, job=None) ->
     except KeyError:
         return
     if decision or note:
-        memory.remember(job, decision=decision, status=status, note=note)
+        fields = {"status": status, "note": note}
+        if decision:
+            fields["decision"] = decision
+        memory.remember(job, **fields)
 
 
 def _confirm(question: str, default: bool = True, assume: bool = False) -> bool:
@@ -82,7 +95,9 @@ def _confirm(question: str, default: bool = True, assume: bool = False) -> bool:
 
 # --- commands ---------------------------------------------------------------
 def cmd_init(args) -> None:
-    cfg = Path(args.dir)
+    cfg = Path(args.dir) if args.dir else default_profile_path().parent
+    if args.person and args.dir:
+        sys.exit("With --person, init uses me/profiles/<person>/; omit --dir.")
     cfg.mkdir(parents=True, exist_ok=True)
     pairs = [(ROOT / "config" / f"{n}.example.yaml", cfg / f"{n}.yaml") for n in ("profile", "sites")]
     pairs.append((ROOT / ".env.example", Path(".env")))
@@ -91,9 +106,17 @@ def cmd_init(args) -> None:
             print(f"exists:  {dst}")
         elif src.exists():
             shutil.copy(src, dst)
+            if args.person and dst.name == "profile.yaml":
+                import yaml
+
+                # Never inherit the sample person's claims, work rights or application answers.
+                dst.write_text(yaml.safe_dump({"name": "", "email": "", "cv_path": "",
+                                               "prefer_remote": False, "open_to_relocation": False},
+                                              sort_keys=False), encoding="utf-8")
             print(f"created: {dst}")
     print(f"workspace: {workspace_dir().resolve()}")
-    print("\nNext: edit config/profile.yaml (name, email, cv_path, roles, regions), then run `jobhunt doctor`.")
+    print(f"\nNext: populate {cfg / 'profile.yaml'} with `jobhunt profile-from-cv <CV>`, "
+          "review it (roles, regions, work rights), then run `jobhunt doctor`.")
 
 
 def cmd_search(args) -> None:
@@ -378,10 +401,12 @@ def cmd_cv_import(args) -> None:
     """Make an existing CV (.docx/.pdf/.md) your editable markdown baseline in the house format."""
     from .cv_format import lint
 
+    if args.populate_profile and args.no_profile:
+        sys.exit("--populate-profile cannot be combined with --no-profile")
     src = Path(args.file)
     if not src.exists():
         sys.exit(f"{src} not found")
-    dest_dir = Path(args.dir)
+    dest_dir = Path(args.dir) if args.dir else personal_dir() / "cv"
     (dest_dir / "originals").mkdir(parents=True, exist_ok=True)
     if src.suffix.lower() != ".md":
         shutil.copy(src, dest_dir / "originals" / src.name)
@@ -401,8 +426,36 @@ def cmd_cv_import(args) -> None:
         print(f"{prof}: {line}")
     for issue in lint(dest.read_text(encoding="utf-8")):
         print(f"  ⚠ {issue}")
+    if args.populate_profile:
+        _populate_profile(prof, dest)
     print("Next: jobhunt cv-export   (Word copy in the same format)  |  jobhunt cv-review <job>")
     journal.log(f"Imported CV baseline from {src.name}", tags=["cv"])
+
+
+def _populate_profile(profile: Path, cv: Path) -> None:
+    from .profiles import populate
+
+    filled, conflicts = populate(profile, read_cv(cv), cv)
+    print(f"Profile: {profile}\nFilled from CV: {', '.join(filled) or 'no empty fields'}")
+    if conflicts:
+        print(f"Kept existing values for: {', '.join(conflicts)}. Review these fields manually.")
+    print("Check all extracted contacts. Set target roles, regions, work rights, salary and answers yourself; "
+          "they are never inferred from a CV.")
+
+
+def cmd_profile_from_cv(args) -> None:
+    cv = args.file or args.cv
+    if not cv:
+        cv = _profile(args).cv_path
+    if not cv or not Path(cv).is_file():
+        sys.exit("Give a CV file or import a baseline first: jobhunt profile-from-cv <CV>")
+    _populate_profile(Path(args.profile), Path(cv))
+
+
+def cmd_profiles(args) -> None:
+    ids = sorted(p.parent.name for p in (Path("me") / "profiles").glob("*/profile.yaml"))
+    print("\n".join(ids) if ids else "No named profiles. Start with: jobhunt --person jane init")
+    print("Select explicitly for every command: jobhunt --person <id> <command>")
 
 
 def cmd_cv_export(args) -> None:
@@ -564,6 +617,10 @@ def cmd_apply(args) -> None:
     from .apply import ApplyAssistant
 
     profile = _profile(args)
+    if args.cv:
+        if not Path(args.cv).is_file():
+            sys.exit(f"CV not found: {args.cv}")
+        profile = replace(profile, cv_path=args.cv)
     job = find_job(args.job)
     missing = match_job(_cv_skills(args, profile), job).missing
     tr = Tracker()
@@ -832,24 +889,25 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("-v", "--verbose", action="store_true")
     p.add_argument("--version", action="version", version=f"jobhunt {__version__}")
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--profile", default="config/profile.yaml")
+    p.add_argument("--person", help="isolated person ID (e.g. jane); also accepted after any command")
+    common.add_argument("--profile", help="profile YAML override (does not select a different workspace)")
     common.add_argument("--cv", help="CV path (overrides profile.cv_path)")
     common.add_argument("--top", type=int, default=20)
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("init", help="create config/profile.yaml and config/sites.yaml")
-    s.add_argument("--dir", default="config")
+    s.add_argument("--dir", help="config directory (default: config, or the selected person's directory)")
     s.set_defaults(fn=cmd_init)
 
     s = sub.add_parser("doctor", parents=[common], help="check your setup and say what to fix")
-    s.add_argument("--sites", default="config/sites.yaml")
+    s.add_argument("--sites", help="job sites YAML (default: selected person's sites)")
     s.set_defaults(fn=cmd_doctor)
 
     for name, fn, hlp in (("search", cmd_search, "collect, filter and rank jobs"),
                           ("daily", cmd_run, "full daily pipeline + notification (alias: run)"),
                           ("run", cmd_run, argparse.SUPPRESS)):
         s = sub.add_parser(name, parents=[common], help=hlp)
-        s.add_argument("--sites", default="config/sites.yaml")
+        s.add_argument("--sites", help="job sites YAML (default: selected person's sites)")
         s.add_argument("--no-filter", action="store_true")
         s.add_argument("--mode", choices=["strict", "weighted"], help="ranking mode (default: profile)")
         s.add_argument("--prep", type=int, default=3, help="interview packs for top N jobs (daily only)")
@@ -886,7 +944,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("job", nargs="?", help="job id or rank")
     s.set_defaults(fn=cmd_fit, top=10)
 
-    for name, fn, hlp in (("prepare", cmd_prepare, "help me apply to this job: fit check + application kit"),
+    for name, fn, hlp in (("application", cmd_prepare, "tailor CV + cover letter and map requirements for one job"),
+                         ("prepare", cmd_prepare, "help me apply to this job: fit check + application kit"),
                           ("pick", cmd_pick, "choose a job from your list, then prepare/apply")):
         s = sub.add_parser(name, parents=[common], help=hlp)
         s.add_argument("job", nargs="?" if name == "pick" else None, help="job id or rank")
@@ -921,11 +980,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("cv-import", parents=[common], help="turn your CV (.docx/.pdf/.md) into the markdown baseline")
     s.add_argument("file")
-    s.add_argument("--dir", default="me/cv", help="where to keep it (git-ignored)")
+    s.add_argument("--dir", help="where to keep it (default: selected person's cv directory)")
     s.add_argument("--name", help="file name without extension (default: same as the source)")
     s.add_argument("--no-profile", action="store_true", help="don't point profile cv_path at it")
+    s.add_argument("--populate-profile", action="store_true", help="also fill empty contact fields from the CV")
     s.add_argument("-y", "--yes", action="store_true")
     s.set_defaults(fn=cmd_cv_import)
+
+    s = sub.add_parser("profile-from-cv", parents=[common], help="fill empty profile contacts from a CV (no guessing)")
+    s.add_argument("file", nargs="?", help="CV file (default: selected profile's baseline)")
+    s.set_defaults(fn=cmd_profile_from_cv)
+
+    sub.add_parser("profiles", help="list local person IDs (no contact details)").set_defaults(fn=cmd_profiles)
 
     s = sub.add_parser("cv-export", parents=[common], help="markdown CV -> Word (.docx) in the house format")
     s.add_argument("file", nargs="?", help="markdown CV (default: profile cv_path)")
@@ -1001,7 +1067,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--due", type=int, help="next action due in N days")
     s.add_argument("--days", type=int, help="quiet days (default: followups 7, sweep 60)")
     s.add_argument("-y", "--yes", action="store_true", help="don't ask (sweep)")
-    s.add_argument("--profile", default="config/profile.yaml")
+    s.add_argument("--profile", help="profile YAML override")
     s.set_defaults(fn=cmd_track)
 
     s = sub.add_parser("journal", help="progress & learnings log")
@@ -1020,7 +1086,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     load_dotenv()
-    args = build_parser().parse_args(argv)
+    selector = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
+    selector.add_argument("--person")
+    selected, rest = selector.parse_known_args(argv)
+    args = build_parser().parse_args(rest)
+    args.person = selected.person or args.person
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING, format="%(levelname)s %(message)s")
     if args.cmd == "journal" and args.action == "log":
         args.kind = args.kind or "progress"
@@ -1029,7 +1099,11 @@ def main(argv: list[str] | None = None) -> None:
     if args.cmd == "track" and args.action in ("update",) and not args.status:
         sys.exit("track update <app_id> <status>")
     try:
-        args.fn(args)
+        with person_scope(args.person):
+            args.profile = getattr(args, "profile", None) or str(default_profile_path())
+            if hasattr(args, "sites"):
+                args.sites = args.sites or str(default_sites_path())
+            args.fn(args)
     except (KeyError, ValueError, RuntimeError) as exc:
         sys.exit(f"error: {exc}")
 

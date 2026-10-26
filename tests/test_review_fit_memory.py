@@ -169,7 +169,8 @@ def test_kit_and_achievements(me):
     assert tailor.best_achievements(job, me, CV, 1)[0].startswith("Built REST APIs")
     files = kit.build(job, me, CV, "cv.md")
     assert set(files) == {"posting.md", "fit.md", "cv-review.md", "cv-draft.md", "cover-letter.md",
-                          "form-answers.md", "interview-prep.md", "checklist.md", "review.md", "company-research"}
+                          "form-answers.md", "interview-prep.md", "checklist.md", "review.md", "company-research",
+                          "requirements.md", "cv-changes.diff"}
     letter = files["cover-letter.md"].read_text()
     assert "2M requests/day" in letter and "\n\n" in letter
 
