@@ -2,6 +2,10 @@
 
 This repo is a Python CLI (`jobhunt`, source in `src/jobhunt/`) that acts as a personal job-hunt agent.
 Agent skills live in `.github/skills/*/SKILL.md` — load the matching skill before acting. Full rules: `AGENTS.md`.
+Read `AGENTS.md` for the shared command-execution rules as well as safety rules.
+For job-hunt requests, execute `uv run jobhunt ...` in the repository root with the terminal tool
+(or `jobhunt` in an activated pip venv), inspect the actual output and report errors explicitly.
+Use a local agent-enabled session for personal data; see `docs/platforms.md` for setup and example prompts.
 
 - Setup: `uv sync --all-extras && uv run playwright install chromium` (pip/venv is also supported; see README).
 - Tests: `uv run pytest -q`  •  Lint: `uv run ruff check src tests`

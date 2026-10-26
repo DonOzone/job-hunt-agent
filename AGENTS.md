@@ -46,6 +46,30 @@ flowchart LR
 
 See [detailed workflows](docs/workflows.md) for application gates and profile isolation.
 
+## Executing requests from an AI platform
+
+- Read the matching skill above before acting; its bare `jobhunt` examples mean
+  `uv run jobhunt` with uv, or `jobhunt` in an activated pip venv.
+- Run from the repository root. Paths to settings, CVs and workspace files depend
+  on the working directory; do not run from a skill directory.
+- Use the platform's terminal/shell tool to execute the requested command, not
+  just describe it. Inspect stdout, stderr and exit status; report failures and
+  missing prerequisites explicitly. Never claim a command ran without tool output.
+- Confirm the person and resolve ambiguous job/application IDs before changing
+  state. Keep `--person <id>` on **every** command for that person.
+- Prefer non-interactive commands: `list` then an explicit job ID instead of
+  `pick`, `add --file <path>` instead of `add --paste`, and
+  `mock-interview <job> --list` / `--rate` for practice in chat.
+- Keep tool approvals enabled. Do not use `--auto-submit`, `--force`, or notification
+  settings to bypass consent or safety gates. `daily` can send configured notifications;
+  use `search` for a search-only request.
+- Personal files are git-ignored, not protected from AI tools. Do not upload CVs,
+  profiles, answers or browser state to external services without explicit consent.
+  If the user does not consent to AI-provider processing, have them run the CLI
+  directly rather than reading personal files into the chat.
+
+Platform setup and copyable prompts: [docs/platforms.md](docs/platforms.md).
+
 ## Dev
 - Setup: `uv sync --all-extras && uv run playwright install chromium` (or `pip install -e ".[dev,all]" && playwright install chromium`) · Tests: `uv run pytest -q` · Lint: `uv run ruff check src tests`
 - Run the CLI with `uv run jobhunt …` (uv) or `jobhunt …` (activated venv); examples in skills use the bare form.
