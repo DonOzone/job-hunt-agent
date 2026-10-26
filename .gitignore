@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Personal data - never commit
+workspace/
+config/profile.yaml
+config/sites.yaml
+*.pdf
+*.docx
+!examples/*.docx
+me/
+.env

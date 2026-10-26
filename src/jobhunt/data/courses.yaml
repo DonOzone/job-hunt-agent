@@ -1,0 +1,109 @@
+# Curated courses/certifications per skill (search links are added automatically for every skill).
+# type: free | paid | cert
+Python:
+  - {name: "Python for Everybody", provider: "Coursera / University of Michigan", type: free-audit, url: "https://www.coursera.org/specializations/python"}
+  - {name: "PCEP / PCAP Python certification", provider: "Python Institute", type: cert, url: "https://pythoninstitute.org/certification-tracks"}
+JavaScript:
+  - {name: "JavaScript Algorithms and Data Structures", provider: "freeCodeCamp", type: free, url: "https://www.freecodecamp.org/learn"}
+  - {name: "The Odin Project - Full Stack JavaScript", provider: "The Odin Project", type: free, url: "https://www.theodinproject.com/"}
+TypeScript:
+  - {name: "TypeScript Handbook", provider: "Microsoft", type: free, url: "https://www.typescriptlang.org/docs/handbook/intro.html"}
+Java:
+  - {name: "Oracle Certified Professional: Java SE Developer", provider: "Oracle", type: cert, url: "https://education.oracle.com/java-certification"}
+Go:
+  - {name: "A Tour of Go", provider: "go.dev", type: free, url: "https://go.dev/tour/"}
+Rust:
+  - {name: "The Rust Programming Language (book)", provider: "rust-lang.org", type: free, url: "https://doc.rust-lang.org/book/"}
+C#:
+  - {name: "C# / .NET learning paths", provider: "Microsoft Learn", type: free, url: "https://learn.microsoft.com/training/dotnet/"}
+SQL:
+  - {name: "SQLBolt interactive lessons", provider: "SQLBolt", type: free, url: "https://sqlbolt.com/"}
+  - {name: "Intro to SQL", provider: "Kaggle Learn", type: free, url: "https://www.kaggle.com/learn/intro-to-sql"}
+React:
+  - {name: "react.dev Learn", provider: "Meta", type: free, url: "https://react.dev/learn"}
+  - {name: "Meta Front-End Developer Professional Certificate", provider: "Coursera / Meta", type: cert, url: "https://www.coursera.org/professional-certificates/meta-front-end-developer"}
+Node.js:
+  - {name: "OpenJS Node.js Application Developer (JSNAD)", provider: "Linux Foundation", type: cert, url: "https://training.linuxfoundation.org/certification/jsnad/"}
+System Design:
+  - {name: "System Design Primer", provider: "GitHub (donnemartin)", type: free, url: "https://github.com/donnemartin/system-design-primer"}
+  - {name: "Designing Data-Intensive Applications (book)", provider: "O'Reilly", type: paid, url: "https://dataintensive.net/"}
+AWS:
+  - {name: "AWS Certified Cloud Practitioner", provider: "AWS", type: cert, url: "https://aws.amazon.com/certification/certified-cloud-practitioner/"}
+  - {name: "AWS Certified Solutions Architect - Associate", provider: "AWS", type: cert, url: "https://aws.amazon.com/certification/certified-solutions-architect-associate/"}
+  - {name: "AWS Skill Builder", provider: "AWS", type: free, url: "https://skillbuilder.aws/"}
+Azure:
+  - {name: "AZ-900 Azure Fundamentals", provider: "Microsoft", type: cert, url: "https://learn.microsoft.com/credentials/certifications/azure-fundamentals/"}
+  - {name: "AZ-104 Azure Administrator", provider: "Microsoft", type: cert, url: "https://learn.microsoft.com/credentials/certifications/azure-administrator/"}
+GCP:
+  - {name: "Google Cloud Associate Cloud Engineer", provider: "Google Cloud", type: cert, url: "https://cloud.google.com/learn/certification/cloud-engineer"}
+  - {name: "Google Cloud Skills Boost", provider: "Google Cloud", type: free, url: "https://www.cloudskillsboost.google/"}
+Docker:
+  - {name: "Docker Getting Started", provider: "Docker", type: free, url: "https://docs.docker.com/get-started/"}
+Kubernetes:
+  - {name: "Certified Kubernetes Administrator (CKA)", provider: "CNCF / Linux Foundation", type: cert, url: "https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/"}
+  - {name: "Certified Kubernetes Application Developer (CKAD)", provider: "CNCF / Linux Foundation", type: cert, url: "https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/"}
+  - {name: "Kubernetes Basics tutorial", provider: "kubernetes.io", type: free, url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/"}
+Terraform:
+  - {name: "HashiCorp Certified: Terraform Associate", provider: "HashiCorp", type: cert, url: "https://developer.hashicorp.com/certifications/infrastructure-automation"}
+  - {name: "Terraform tutorials", provider: "HashiCorp", type: free, url: "https://developer.hashicorp.com/terraform/tutorials"}
+CI/CD:
+  - {name: "GitHub Actions certification", provider: "GitHub", type: cert, url: "https://resources.github.com/learn/certifications/"}
+  - {name: "GitHub Actions docs - quickstart", provider: "GitHub", type: free, url: "https://docs.github.com/actions/quickstart"}
+Linux:
+  - {name: "Linux Foundation Certified System Administrator (LFCS)", provider: "Linux Foundation", type: cert, url: "https://training.linuxfoundation.org/certification/linux-foundation-certified-sysadmin-lfcs/"}
+  - {name: "Linux Journey", provider: "linuxjourney.com", type: free, url: "https://linuxjourney.com/"}
+Git:
+  - {name: "Pro Git (book)", provider: "git-scm.com", type: free, url: "https://git-scm.com/book/en/v2"}
+Testing:
+  - {name: "ISTQB Certified Tester Foundation Level", provider: "ISTQB", type: cert, url: "https://www.istqb.org/certifications/certified-tester-foundation-level"}
+Playwright:
+  - {name: "Playwright docs - Getting started", provider: "Microsoft", type: free, url: "https://playwright.dev/docs/intro"}
+Identity & Auth:
+  - {name: "Microsoft Identity and Access Administrator (SC-300)", provider: "Microsoft Learn", type: cert, url: "https://learn.microsoft.com/credentials/certifications/identity-and-access-administrator/"}
+  - {name: "OAuth 2.0 and OpenID Connect (Okta Developer)", provider: "Okta", type: free, url: "https://developer.okta.com/docs/concepts/oauth-openid/"}
+Security:
+  - {name: "CompTIA Security+", provider: "CompTIA", type: cert, url: "https://www.comptia.org/certifications/security"}
+  - {name: "OWASP Top 10", provider: "OWASP", type: free, url: "https://owasp.org/www-project-top-ten/"}
+  - {name: "CISSP", provider: "ISC2", type: cert, url: "https://www.isc2.org/certifications/cissp"}
+Machine Learning:
+  - {name: "Machine Learning Specialization (Andrew Ng)", provider: "Coursera / DeepLearning.AI", type: free-audit, url: "https://www.coursera.org/specializations/machine-learning-introduction"}
+  - {name: "Kaggle Learn - Intro to ML", provider: "Kaggle", type: free, url: "https://www.kaggle.com/learn/intro-to-machine-learning"}
+Deep Learning:
+  - {name: "Practical Deep Learning for Coders", provider: "fast.ai", type: free, url: "https://course.fast.ai/"}
+  - {name: "Deep Learning Specialization", provider: "Coursera / DeepLearning.AI", type: free-audit, url: "https://www.coursera.org/specializations/deep-learning"}
+LLMs:
+  - {name: "Hugging Face LLM Course", provider: "Hugging Face", type: free, url: "https://huggingface.co/learn"}
+  - {name: "DeepLearning.AI short courses (GenAI)", provider: "DeepLearning.AI", type: free, url: "https://www.deeplearning.ai/short-courses/"}
+MLOps:
+  - {name: "MLOps Zoomcamp", provider: "DataTalks.Club", type: free, url: "https://github.com/DataTalksClub/mlops-zoomcamp"}
+Data Engineering:
+  - {name: "Data Engineering Zoomcamp", provider: "DataTalks.Club", type: free, url: "https://github.com/DataTalksClub/data-engineering-zoomcamp"}
+  - {name: "Google Cloud Professional Data Engineer", provider: "Google Cloud", type: cert, url: "https://cloud.google.com/learn/certification/data-engineer"}
+Spark:
+  - {name: "Databricks Certified Data Engineer Associate", provider: "Databricks", type: cert, url: "https://www.databricks.com/learn/certification/data-engineer-associate"}
+Data Analysis:
+  - {name: "Google Data Analytics Professional Certificate", provider: "Coursera / Google", type: cert, url: "https://www.coursera.org/professional-certificates/google-data-analytics"}
+  - {name: "Kaggle Learn - Pandas", provider: "Kaggle", type: free, url: "https://www.kaggle.com/learn/pandas"}
+Power BI:
+  - {name: "PL-300 Power BI Data Analyst", provider: "Microsoft", type: cert, url: "https://learn.microsoft.com/credentials/certifications/data-analyst-associate/"}
+Snowflake:
+  - {name: "SnowPro Core Certification", provider: "Snowflake", type: cert, url: "https://www.snowflake.com/certifications/"}
+Agile:
+  - {name: "Professional Scrum Master I (PSM I)", provider: "Scrum.org", type: cert, url: "https://www.scrum.org/assessments/professional-scrum-master-i-certification"}
+Project Management:
+  - {name: "Google Project Management Certificate", provider: "Coursera / Google", type: cert, url: "https://www.coursera.org/professional-certificates/google-project-management"}
+  - {name: "PMP", provider: "PMI", type: cert, url: "https://www.pmi.org/certifications/project-management-pmp"}
+Product Management:
+  - {name: "Product Management courses", provider: "Reforge / Product School", type: paid, url: "https://productschool.com/"}
+UX Design:
+  - {name: "Google UX Design Professional Certificate", provider: "Coursera / Google", type: cert, url: "https://www.coursera.org/professional-certificates/google-ux-design"}
+Salesforce:
+  - {name: "Salesforce Trailhead", provider: "Salesforce", type: free, url: "https://trailhead.salesforce.com/"}
+ITIL:
+  - {name: "ITIL 4 Foundation", provider: "PeopleCert / Axelos", type: cert, url: "https://www.peoplecert.org/browse-certifications/it-governance-and-service-management/ITIL-1"}
+Networking:
+  - {name: "Cisco CCNA", provider: "Cisco", type: cert, url: "https://www.cisco.com/site/us/en/learn/training-certifications/certifications/enterprise/ccna/index.html"}
+Leadership:
+  - {name: "The Manager's Path (book)", provider: "O'Reilly", type: paid, url: "https://www.oreilly.com/library/view/the-managers-path/9781491973882/"}
+Communication:
+  - {name: "Technical writing courses", provider: "Google", type: free, url: "https://developers.google.com/tech-writing"}

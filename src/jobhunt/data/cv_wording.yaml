@@ -1,0 +1,68 @@
+# Wording rules used by `jobhunt cv-review`. Extend freely.
+
+# Weak openers -> replaced by a strong action verb chosen from `verbs` by context.
+weak_openers:
+  - responsible for
+  - in charge of
+  - tasked with
+  - duties included
+  - involved in
+  - worked on
+  - worked with
+  - helped (to )?
+  - assisted (in|with)?
+  - participated in
+  - contributed to
+  - was part of
+  - had to
+  - handled
+
+# Gerund -> past tense irregulars (regular ones are handled by rule)
+irregular:
+  building: built
+  leading: led
+  writing: wrote
+  running: ran
+  making: made
+  setting: set
+  getting: got
+  driving: drove
+  bringing: brought
+  teaching: taught
+  selling: sold
+  growing: grew
+  spending: spent
+  winning: won
+  overseeing: oversaw
+  shipping: shipped
+  planning: planned
+  scoping: scoped
+
+# Overused phrases that add no evidence - replace with proof
+cliches:
+  - hard[- ]working
+  - team player
+  - detail[- ]oriented
+  - go[- ]getter
+  - self[- ]starter
+  - results[- ]driven
+  - think outside the box
+  - synergy
+  - dynamic
+  - passionate
+  - excellent communication skills
+  - fast learner
+  - proven track record
+  - best of breed
+  - rockstar
+  - ninja
+
+# Section headings ATS parsers expect (any alias counts)
+sections:
+  summary: [summary, profile, about me, professional summary, objective]
+  experience: [experience, work experience, employment, professional experience, work history]
+  skills: [skills, technical skills, core skills, competencies, core competencies, tech stack, key skills]
+  education: [education, qualifications, academic]
+  certifications: [certifications, certificates, licenses, courses, certifications and training, training]
+  projects: [projects, portfolio, open source, selected projects, key projects]
+  additional: [additional information, additional, interests, hobbies, languages, references, personal details, personal]

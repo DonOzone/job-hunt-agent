@@ -1,0 +1,20 @@
+# Sites to search. Copy to config/sites.yaml (`jobhunt init`).
+# Public ATS boards: use the company's board token from its careers URL, e.g.
+#   boards.greenhouse.io/<token> | jobs.lever.co/<company> | jobs.ashbyhq.com/<company>
+sites:
+  - {type: remoteok}
+  - {type: arbeitnow, pages: 2}
+  - {type: greenhouse, company: gitlab, name: GitLab}
+  - {type: greenhouse, company: stripe, name: Stripe}
+  - {type: lever, company: spotify, name: Spotify}
+  - {type: ashby, company: linear, name: Linear}
+  # Any careers page (needs `pip install -e '.[browser]'` + `playwright install chromium`):
+  # - type: browser
+  #   name: Example Co
+  #   url: https://example.com/careers
+  #   item: ".job-listing"
+  #   title: "h3"
+  #   link: "a"
+  #   location: ".location"
+  #   fetch_details: true
+  #   detail: "main"

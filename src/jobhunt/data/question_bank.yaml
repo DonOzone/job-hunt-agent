@@ -1,0 +1,115 @@
+# Multiple-choice questions for `jobhunt assess <skill>`. answer = 0-based option index.
+# Skills without questions fall back to a structured self-assessment. Contributions welcome!
+Python:
+  - q: What does a list comprehension `[x*x for x in range(3)]` return?
+    options: ["[0, 1, 4]", "[1, 4, 9]", "(0, 1, 4)", "a generator"]
+    answer: 0
+  - q: Which structure gives average O(1) membership tests?
+    options: [list, tuple, set, "str"]
+    answer: 2
+  - q: What is the main effect of the GIL in CPython?
+    options: ["Prevents multiprocessing", "Only one thread executes Python bytecode at a time", "Disables async", "Limits memory"]
+    answer: 1
+  - q: Why is `def f(x, items=[])` risky?
+    options: ["Syntax error", "Default list is shared across calls", "Lists can't be defaults", "It is slow"]
+    answer: 1
+    why: default values are evaluated once at definition time
+  - q: Which keyword turns a function into a generator?
+    options: [return, yield, async, lambda]
+    answer: 1
+SQL:
+  - q: Which clause filters rows AFTER aggregation?
+    options: [WHERE, HAVING, GROUP BY, ORDER BY]
+    answer: 1
+  - q: A LEFT JOIN returns...
+    options: ["Only matching rows", "All left rows plus matches from right", "All right rows", "Cartesian product"]
+    answer: 1
+  - q: Which index type helps most for `WHERE email = ?`?
+    options: ["B-tree index on email", "No index", "Full-text index on name", "Index on id only"]
+    answer: 0
+  - q: What does a window function like ROW_NUMBER() OVER (PARTITION BY a ORDER BY b) do?
+    options: ["Deletes duplicates", "Numbers rows within each group of a", "Aggregates into one row", "Creates a view"]
+    answer: 1
+JavaScript:
+  - q: What is `typeof null`?
+    options: ['"null"', '"object"', '"undefined"', '"number"']
+    answer: 1
+  - q: Which declaration is block-scoped and cannot be reassigned?
+    options: [var, let, const, function]
+    answer: 2
+  - q: What does `await` do inside an async function?
+    options: ["Blocks the whole thread", "Pauses that function until the promise settles", "Creates a thread", "Nothing"]
+    answer: 1
+  - q: '`[1,2,3].map(x => x * 2)` returns'
+    options: ["[2,4,6]", "6", "undefined", "[1,2,3]"]
+    answer: 0
+AWS:
+  - q: Which service is object storage?
+    options: [EC2, S3, RDS, Lambda]
+    answer: 1
+  - q: What best describes an IAM role?
+    options: ["A user with a password", "A set of permissions assumed by trusted entities", "A VPC subnet", "A billing account"]
+    answer: 1
+  - q: For high availability you should deploy across multiple...
+    options: ["Availability Zones", "IAM users", "S3 buckets", "Security groups"]
+    answer: 0
+  - q: Which service runs code without managing servers?
+    options: [EC2, Lambda, EBS, Route 53]
+    answer: 1
+Docker:
+  - q: What is a Docker image?
+    options: ["A running process", "A read-only template used to create containers", "A VM", "A volume"]
+    answer: 1
+  - q: How do you persist data beyond a container's life?
+    options: ["Write to /tmp", "Use volumes", "Use ENV", "Use EXPOSE"]
+    answer: 1
+  - q: Why order Dockerfile steps from least to most frequently changing?
+    options: ["Security", "Layer cache reuse speeds up builds", "Required syntax", "Smaller ports"]
+    answer: 1
+Kubernetes:
+  - q: The smallest deployable unit in Kubernetes is a...
+    options: [Container, Pod, Node, Service]
+    answer: 1
+  - q: Which object keeps N replicas of a pod running and supports rolling updates?
+    options: [Deployment, ConfigMap, Ingress, Namespace]
+    answer: 0
+  - q: What gives pods a stable network endpoint?
+    options: [Service, Secret, PersistentVolume, Job]
+    answer: 0
+  - q: Which probe decides if a pod should receive traffic?
+    options: [livenessProbe, readinessProbe, startupProbe, none]
+    answer: 1
+Git:
+  - q: What does `git rebase main` do on a feature branch?
+    options: ["Deletes main", "Replays your commits on top of main", "Merges and creates a merge commit", "Pushes to remote"]
+    answer: 1
+  - q: How do you undo the last commit but keep the changes staged?
+    options: ["git reset --soft HEAD~1", "git reset --hard HEAD~1", "git revert HEAD --hard", "git checkout HEAD~1"]
+    answer: 0
+System Design:
+  - q: What is the main purpose of a cache in front of a database?
+    options: ["Durability", "Reduce latency and DB load for hot reads", "Enforce schema", "Encrypt data"]
+    answer: 1
+  - q: The CAP theorem says during a network partition you must choose between...
+    options: ["Cost and performance", "Consistency and availability", "Caching and paging", "CPU and memory"]
+    answer: 1
+  - q: Which pattern decouples producers from consumers and absorbs spikes?
+    options: ["Message queue", "Singleton", "Monolith", "Two-phase commit"]
+    answer: 0
+Machine Learning:
+  - q: A model performs great on training data but poorly on test data. This is...
+    options: [Underfitting, Overfitting, Regularisation, Normalisation]
+    answer: 1
+  - q: Which metric suits a highly imbalanced binary classification problem?
+    options: [Accuracy, "Precision/recall or F1", "MSE", "R squared"]
+    answer: 1
+  - q: Why use a separate validation set?
+    options: ["To train faster", "To tune hyperparameters without leaking test data", "To increase data", "To label data"]
+    answer: 1
+Agile:
+  - q: Who owns and prioritises the product backlog in Scrum?
+    options: ["Scrum Master", "Product Owner", "Developers", "Stakeholders"]
+    answer: 1
+  - q: The purpose of a retrospective is to...
+    options: ["Demo features", "Inspect and improve the way the team works", "Estimate stories", "Assign blame"]
+    answer: 1

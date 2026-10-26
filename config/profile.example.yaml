@@ -1,0 +1,64 @@
+# Your profile. `jobhunt init` copies this to config/profile.yaml (git-ignored - your details stay local).
+# Only the first block is required; everything else has sensible defaults.
+
+# --- 1. About you (required) -------------------------------------------------------------
+name: Jane Doe
+email: jane.doe@example.com
+phone: "+254 700 000 000"
+location: Nairobi, Kenya
+home_country: Kenya                      # jobs here never need relocation or a visa
+cv_path: examples/sample_cv.md           # your CV: run `jobhunt cv-import "My CV.docx"` to set this for you
+linkedin: https://www.linkedin.com/in/janedoe-example
+github: https://github.com/janedoe-example
+website: ""
+
+# --- 2. What you are looking for -----------------------------------------------------------
+requirement:
+  roles: ["backend engineer", "platform engineer", "software engineer"]   # title words to match
+  must_have: []                          # skills a job MUST mention, e.g. [python]
+  nice_to_have: [kubernetes, aws]        # boost jobs mentioning these
+  include_any: []                        # keep only jobs whose text has ANY of these words
+  exclude: [intern, junior]              # drop titles containing these
+  exclude_text: []                       # drop jobs whose description contains these (e.g. "security clearance")
+  locations: []                          # e.g. [Kenya, Remote, Europe]; empty = anywhere
+  remote_only: false
+  min_salary_usd: 0                      # drop jobs whose KNOWN package is below this (yearly, USD)
+  max_age_days: 30                       # ignore postings older than this
+  needs_visa_sponsorship: false          # true = drop onsite-abroad jobs that say "no sponsorship"
+
+# --- 3. How to rank jobs ------------------------------------------------------------------
+# Regions in your order of preference: MEA (Africa/Middle East), EU, UK, NA, LATAM, APAC, GLOBAL (remote anywhere)
+preferred_regions: [GLOBAL, MEA, EU, UK, NA]
+prefer_remote: true
+open_to_relocation: true
+target_salary_usd: 90000                 # used for the package score and salary answers
+ranking_mode: strict                     # strict = region > remote > relocation > package > CV match
+                                         # weighted = blended score using ranking_weights
+ranking_weights: {region: 0.25, remote: 0.25, relocation: 0.15, package: 0.20, match: 0.15}
+
+# --- 4. Fit checks (used by `jobhunt fit` / `prepare`) ------------------------------------
+work_authorization: [Kenya]              # countries where you can ALREADY work without sponsorship
+security_clearance: false
+languages: {English: fluent, Kiswahili: native}   # native | fluent | C1 | B2 | B1 | basic
+career_goals: [distributed systems, AI, platform, staff]   # words that make a role attractive
+avoid: [on-site only, 24/7 on-call]      # words that make a role draining
+achievements:                            # your best quantified wins (used in cover letters/answers)
+  - Cut p95 checkout latency by 35% with Redis caching and PostgreSQL tuning
+  - Led migration of 14 services to Kubernetes, reducing infrastructure cost by 22%
+
+# --- 5. Apply assistant ------------------------------------------------------------------
+# Re-used when a form label contains the key (case-insensitive). Answer honestly.
+answers:
+  notice period: "1 month"
+  sponsorship: "No"
+  salary expectation: "Open to discussing based on the total package"
+  how did you hear: "Company careers page"
+
+# Currency -> USD overrides for comparing packages (defaults cover USD/EUR/GBP/KES/... already)
+fx_to_usd: {}
+
+# --- 6. Notifications (optional - or set JOBHUNT_* in .env, see .env.example) -------------
+notify:
+  ntfy_topic: ""                         # phone pushes: install the ntfy app and subscribe to a secret topic
+  webhook_url: ""                        # Slack / Teams / Discord incoming webhook
+  desktop: false

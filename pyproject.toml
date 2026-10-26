@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "job-hunt-agent"
+version = "0.1.0"
+description = "An agent that finds, ranks, tracks and helps you apply to jobs, analyses CV skill gaps and prepares you for interviews."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "requests>=2.31",
+  "PyYAML>=6.0",
+  "python-docx>=1.1",
+]
+
+[project.optional-dependencies]
+browser = ["playwright>=1.44"]
+docs = ["pypdf>=4.0"]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+all = ["playwright>=1.44", "pypdf>=4.0"]
+
+[project.scripts]
+jobhunt = "jobhunt.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jobhunt = ["data/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
