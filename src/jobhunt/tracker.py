@@ -104,12 +104,50 @@ class Tracker:
     def history(self, app_id: int) -> list[sqlite3.Row]:
         return self.db.execute("SELECT * FROM events WHERE app_id=? ORDER BY id", (app_id,)).fetchall()
 
+    def log_event(self, app_id: int, note: str) -> None:
+        """Timestamped note that doesn't change the status (e.g. 'follow-up sent')."""
+        row = self.get(app_id)
+        if not row:
+            raise KeyError(f"Application {app_id} not found")
+        with self.db:
+            self.db.execute("INSERT INTO events(app_id,ts,status,note) VALUES(?,?,?,?)",
+                            (app_id, now(), row["status"], note))
+
+    def followups_sent(self, app_id: int) -> int:
+        return self.db.execute("SELECT COUNT(*) FROM events WHERE app_id=? AND note LIKE 'follow-up%'",
+                               (app_id,)).fetchone()[0]
+
+    def last_activity(self, app_id: int) -> str:
+        return self.db.execute("SELECT MAX(ts) FROM events WHERE app_id=?", (app_id,)).fetchone()[0] or ""
+
     def stale(self, days: int = 7) -> list[sqlite3.Row]:
-        """Applications sitting in 'applied' (or a passed stage) with no update for N days -> follow up."""
+        """Submitted, still-open applications with no activity (update or follow-up) for N days."""
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
-        active = tuple(({"applied"} | PASSED) - {"accepted"})
+        active = tuple(({"applied"} | PASSED) - {"accepted", "offer"})
         q = f"SELECT * FROM applications WHERE status IN ({','.join('?' * len(active))}) AND updated_at < ?"
-        return self.db.execute(q, (*active, cutoff)).fetchall()
+        rows = self.db.execute(q, (*active, cutoff)).fetchall()
+        return [r for r in rows if self.last_activity(r["id"]) < cutoff]
+
+    def days_quiet(self, app_id: int) -> int:
+        last = self.last_activity(app_id)
+        return (datetime.now(timezone.utc) - datetime.fromisoformat(last)).days if last else 0
+
+    def funnel(self) -> dict[str, int]:
+        """How far each application got, from its full history (not just the current status)."""
+        order = ["applied", "screening", "assessment", "interview", "final", "offer", "accepted"]
+        out = dict.fromkeys(["submitted", "responded", "interview", "offer"], 0)
+        for r in self.list():
+            reached = {e["status"] for e in self.history(r["id"])} | {r["status"]}
+            if not reached & (set(order) | FAILED - {"withdrawn"}):
+                continue  # never sent
+            out["submitted"] += 1
+            if reached & (PASSED | {"rejected", "failed", "declined"}):
+                out["responded"] += 1
+            if reached & {"interview", "final", "offer", "accepted"}:
+                out["interview"] += 1
+            if reached & {"offer", "accepted", "declined"}:
+                out["offer"] += 1
+        return out
 
     def summary(self) -> dict:
         rows = self.list()

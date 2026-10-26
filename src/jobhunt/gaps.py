@@ -33,8 +33,23 @@ def course_links(skill: str) -> list[dict]:
     return entries
 
 
-def analyse(jobs: list[Job], cv_skills: set[str]) -> tuple[list[Gap], list[tuple[str, int]]]:
-    """Return (ranked gaps, strengths). Importance blends frequency, job rank, mention depth and skill weight."""
+DECISION_WEIGHT = {"shortlist": 1.5, "preparing": 2.0, "applied": 2.0, "skip": 0.0, "closed": 0.0}
+
+
+def decision_weights(records: dict[str, dict]) -> dict[str, float]:
+    """Job id -> weight from your reviewed-jobs memory decisions."""
+    return {jid: DECISION_WEIGHT[r["decision"]] for jid, r in records.items() if r.get("decision") in DECISION_WEIGHT}
+
+
+def analyse(jobs: list[Job], cv_skills: set[str], weights: dict[str, float] | None = None,
+            ) -> tuple[list[Gap], list[tuple[str, int]]]:
+    """Return (ranked gaps, strengths). Importance blends frequency, job rank, mention depth and skill weight.
+
+    `weights` (job id -> multiplier) lets your decisions steer the plan: jobs you shortlisted or applied to count
+    more, jobs you skipped count zero (see `decision_weights`).
+    """
+    weights = weights or {}
+    jobs = [j for j in jobs if weights.get(j.id, 1.0) > 0]
     if not jobs:
         return [], []
     tax = taxonomy()
@@ -43,7 +58,7 @@ def analyse(jobs: list[Job], cv_skills: set[str]) -> tuple[list[Gap], list[tuple
     strengths: dict[str, int] = defaultdict(int)
     for job in jobs:
         match_job(cv_skills, job)
-        rank_weight = 1.0 / (1 + 0.05 * ((job.rank or 1) - 1))  # top-ranked jobs matter more
+        rank_weight = weights.get(job.id, 1.0) / (1 + 0.05 * ((job.rank or 1) - 1))  # top-ranked jobs matter more
         mentions = skill_counts(f"{job.title}\n{job.description}")
         for skill in job.skills:
             if skill in cv_skills:

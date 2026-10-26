@@ -32,8 +32,12 @@ def best_achievements(job: Job, profile: Profile, cv_text: str, n: int = 2) -> l
     wins = list(profile.achievements or [])[:n]
     if len(wins) < n:
         job_skills = set(match_job(set(skill_counts(cv_text)), job).matched)
-        bullets = [re.sub(r"^\s*[-*\u2022]\s*", "", ln).strip() for ln in cv_text.splitlines()
-                   if re.match(r"^\s*[-*\u2022]\s+", ln) and re.search(r"\d", ln)]
+        from .cv_review import parse
+
+        metric = re.compile(r"\d+(?:[.,]\d+)?\s?(?:%|x\b|[kmb]\+?\b|\+)|\$\s?\d|\d{2,}", re.I)
+        bullets = [ln.body.strip() for ln in parse(cv_text)
+                   if ln.bullet_prefix and ln.section in (None, "experience", "projects")
+                   and metric.search(ln.body) and ln.body.count(",") < 5]
         bullets.sort(key=lambda b: -len(job_skills & set(skill_counts(b))))
         wins += [b.rstrip(".") + "." for b in bullets if b not in wins][: n - len(wins)]
     return wins
@@ -45,22 +49,25 @@ def cover_letter(job: Job, profile: Profile, cv_text: str) -> str:
     wins = best_achievements(job, profile, cv_text)
     wins += ["<one quantified achievement>", "<another quantified achievement>"][len(wins):]
     gap = m.missing[:1]
+    style = profile.writing_style or {}
     return "\n".join(x for x in [
         f"Dear {job.company} hiring team,",
         "",
         f"I'm applying for the {job.title} role."
         + (f" My hands-on experience with {', '.join(top)} maps directly to what you're looking for." if top else ""),
         "",
-        "A couple of results I'm proud of:",
+        f"<Why {job.company} specifically: one concrete thing (product, mission, recent launch) - see "
+        "company-research.md. Then the problem of theirs you'd help solve first.>",
+        "",
+        "A couple of results that show how I'd approach the work:",
         f"- {wins[0]}",
         f"- {wins[1]}",
         "",
-        f"<One sentence on why {job.company} specifically - product, mission or a recent launch.>",
-        (f"I'm actively deepening my {gap[0]} skills and can share a recent project." if gap else None),
-        "",
+        (f"<Optional, only if true: how you're closing the {gap[0]} gap (course, project, similar tool).>"
+         if gap else None),
         "I'd welcome the chance to discuss how I can help the team.",
         "",
-        "Best regards,",
+        f"{style.get('sign_off') or 'Best regards'},",
         profile.name or "<Your name>",
         " · ".join(x for x in (profile.email, profile.linkedin) if x),
     ] if x is not None)

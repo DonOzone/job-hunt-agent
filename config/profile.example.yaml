@@ -57,6 +57,12 @@ answers:
 # Currency -> USD overrides for comparing packages (defaults cover USD/EUR/GBP/KES/... already)
 fx_to_usd: {}
 
+# How your cover letters and answers should sound (checked by `jobhunt review`)
+writing_style:
+  tone: warm and direct                  # e.g. warm and direct | formal | concise
+  sign_off: Best regards
+  avoid_words: [guru, ninja, rockstar]   # words you never want in your applications
+
 # --- 6. Notifications (optional - or set JOBHUNT_* in .env, see .env.example) -------------
 notify:
   ntfy_topic: ""                         # phone pushes: install the ntfy app and subscribe to a secret topic

@@ -462,7 +462,7 @@ def cmd_cv(args) -> None:
 def cmd_gaps(args) -> None:
     profile = _profile(args)
     jobs = _jobs()[: args.jobs] if args.jobs else _jobs()
-    found, strengths = gaps.analyse(jobs, _cv_skills(args, profile))
+    found, strengths = gaps.analyse(jobs, _cv_skills(args, profile), gaps.decision_weights(memory.records()))
     path = _write("skill-gaps.md", gaps.render_markdown(found, strengths, len(jobs), args.top))
     for i, g in enumerate(found[: args.top], 1):
         print(f"{i:>2}. {g.skill:<22} importance={g.importance:>5.1f}  jobs={g.jobs}  -> {g.courses[0]['name']}")
@@ -472,7 +472,7 @@ def cmd_gaps(args) -> None:
 
 def cmd_study_plan(args) -> None:
     profile = _profile(args)
-    found, _ = gaps.analyse(_jobs(), _cv_skills(args, profile))
+    found, _ = gaps.analyse(_jobs(), _cv_skills(args, profile), gaps.decision_weights(memory.records()))
     path = _write("study-plan.md", assessment.study_plan(found, args.hours, args.skills))
     print(path.read_text(encoding="utf-8"))
     print(f"Saved: {path}")
@@ -570,17 +570,105 @@ def cmd_track(args) -> None:
             print(json.dumps({k: v for k, v in tr.summary().items()}, indent=2))
             print(f"Report: {path}")
         elif args.action == "followups":
+            args.days = args.days or 7
             rows = tr.stale(args.days)
+            profile = _profile(args) if Path(args.profile).exists() else Profile()
+            out = workspace_dir() / "followups"
+            out.mkdir(exist_ok=True)
             for r in rows:
-                print(f"#{r['id']} {r['title']} @ {r['company']} — {r['status']} since {r['updated_at']}")
+                sent = tr.followups_sent(r["id"])
+                print(f"#{r['id']} {r['title']} @ {r['company']} - {r['status']}, quiet {tr.days_quiet(r['id'])} "
+                      f"days, {sent} follow-up(s) sent")
+                if sent >= 2:
+                    print("   Two follow-ups already - time to move on: `jobhunt track sweep`")
+                    continue
+                path = out / f"{date.today().isoformat()}-app{r['id']}.md"
+                path.write_text(_followup_note(r, profile, sent), encoding="utf-8")
+                print(f"   Draft: {path}  (after sending: jobhunt track sent {r['id']})")
             if rows:
-                Notifier((_profile(args)).notify).send(
+                Notifier(profile.notify).send(
                     "Follow-ups due", f"{len(rows)} application(s) quiet for {args.days}+ days. "
-                    "Send a short, polite follow-up.")
+                    f"Drafts are in {out}.")
             else:
                 print("Nothing to follow up 🎉")
+        elif args.action == "sent":
+            tr.log_event(int(args.target), f"follow-up sent{': ' + args.note if args.note else ''}")
+            print(f"Logged follow-up for #{args.target} (the quiet clock restarts).")
+        elif args.action == "sweep":
+            days = args.days or 60
+            rows = tr.stale(days)
+            if not rows:
+                print(f"No open applications quiet for {days}+ days.")
+            for r in rows:
+                print(f"#{r['id']} {r['title']} @ {r['company']} - {r['status']}, quiet {tr.days_quiet(r['id'])} days")
+            if rows and _confirm(f"Mark these {len(rows)} as ghosted?", default=False, assume=args.yes):
+                for r in rows:
+                    tr.update(r["id"], "ghosted", f"no response after {days}+ days (sweep)")
+                    _sync_memory(r["job_id"], "ghosted", "sweep")
+                journal.log(f"Closed {len(rows)} quiet application(s) as ghosted", kind="setback",
+                            tags=["application"])
+                print("Done. Ghosting is about their process, not your worth - keep the pipeline full.")
+        elif args.action == "dashboard":
+            from . import dashboard
+
+            path = _write("dashboard.html", dashboard.render(tr))
+            print(f"Dashboard: {path}  (open it in your browser)")
     finally:
         tr.close()
+
+
+def _followup_note(row, profile: Profile, sent: int) -> str:
+    applied = (row["created_at"] or "")[:10]
+    name = profile.name or "<Your name>"
+    sign = (profile.writing_style or {}).get("sign_off") or "Best regards"
+    second = sent >= 1
+    return "\n".join([
+        f"<!-- Follow-up {'#2 (last one)' if second else '#1'} for application #{row['id']}. Edit, send by email or "
+        f"LinkedIn, then run: jobhunt track sent {row['id']} -->",
+        "",
+        f"Subject: {row['title']} application - {'checking in again' if second else 'following up'}",
+        "",
+        f"Hi {row['company']} team,",
+        "",
+        f"I applied for the {row['title']} role{' on ' + applied if applied else ''} and wanted to "
+        + ("check in once more." if second else "follow up on my application."),
+        "<One line: what draws you to the role or a recent relevant result - specific, not generic.>",
+        "",
+        ("If the position has been filled, I'd appreciate a quick note so I can close the loop - and I'd be glad "
+         "to be considered for similar roles." if second else
+         "I'm happy to share anything else that would help with your decision."),
+        "",
+        f"{sign},",
+        name,
+    ]) + "\n"
+
+
+def cmd_review(args) -> None:
+    """Hiring-manager-style review of the application kit for a job."""
+    from . import kit, review
+
+    profile = _profile(args)
+    cv_text, _ = _cv_text(args, profile, required="review")
+    job = find_job(args.job)
+    folder = kit.folder(job)
+    if not any(folder.iterdir()):
+        sys.exit(f"No application kit yet. Run: jobhunt prepare {job.id}")
+    rep = review.review_kit(job, folder, profile, cv_text)
+    path = folder / "review.md"
+    path.write_text(review.render(rep), encoding="utf-8")
+    print(path.read_text(encoding="utf-8"))
+    memory.remember(job, note=f"kit review {rep.score}/100")
+    print(f"Saved: {path}")
+
+
+def cmd_research(args) -> None:
+    """Create/open the cached company research notes for a job's company."""
+    from . import research
+
+    job = find_job(args.job)
+    path = research.brief(job)
+    print(path.read_text(encoding="utf-8"))
+    print(f"Notes file: {path}  ({'has notes' if research.is_filled(path) else 'fill in 2+ sections'})")
 
 
 def cmd_journal(args) -> None:
@@ -599,7 +687,7 @@ def cmd_insights(args) -> None:
     top = []
     if load_jobs() and Path(args.profile).exists():
         profile = _profile(args)
-        found, _ = gaps.analyse(load_jobs(), _cv_skills(args, profile))
+        found, _ = gaps.analyse(load_jobs(), _cv_skills(args, profile), gaps.decision_weights(memory.records()))
         top = [g.skill for g in found[:3]]
     print(insights.render(insights.contextual_tips(summary, stale, top), args.limit))
 
@@ -688,7 +776,7 @@ def cmd_run(args) -> None:
     profile = _profile(args)
     cv = _cv_skills(args, profile)
     jobs = load_jobs()
-    found, strengths = gaps.analyse(jobs, cv)
+    found, strengths = gaps.analyse(jobs, cv, gaps.decision_weights(memory.records()))
     _write("skill-gaps.md", gaps.render_markdown(found, strengths, len(jobs)))
     _write("study-plan.md", assessment.study_plan(found))
     for job in jobs[: args.prep]:
@@ -784,6 +872,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--decision", choices=memory.DECISIONS, help="filter list")
     s.set_defaults(fn=cmd_memory)
 
+    s = sub.add_parser("review", parents=[common], help="hiring-manager review of an application kit before sending")
+    s.add_argument("job", help="job id or rank")
+    s.set_defaults(fn=cmd_review)
+
+    s = sub.add_parser("research", parents=[common], help="company research notes (cached per company)")
+    s.add_argument("job", help="job id or rank")
+    s.set_defaults(fn=cmd_research)
+
     s = sub.add_parser("cv-review", parents=[common], help="review + rewrite your CV for a job/role (draft)")
     s.add_argument("job", nargs="?", help="job id or rank (default: top N / --role / --mine)")
     s.add_argument("--role", help='only jobs whose title matches, e.g. "data engineer"')
@@ -849,13 +945,17 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(fn=cmd_apply)
 
     s = sub.add_parser("track", help="application tracker")
-    s.add_argument("action", choices=["add", "update", "list", "history", "report", "followups"])
-    s.add_argument("target", nargs="?", help="job id/rank (add) or application id (update/history)")
+    s.add_argument("action", choices=["add", "update", "list", "history", "report", "followups", "sent", "sweep",
+                                      "dashboard"],
+                   help="followups = draft notes for quiet apps; sent = log a follow-up you sent; "
+                        "sweep = close apps quiet 60+ days as ghosted; dashboard = HTML funnel")
+    s.add_argument("target", nargs="?", help="job id/rank (add) or application id (update/history/sent)")
     s.add_argument("status", nargs="?", help=f"one of {sorted(STATUSES)} (list also accepts passed/failed/pending)")
     s.add_argument("--note")
     s.add_argument("--next", help="next action, e.g. 'Send thank-you email'")
     s.add_argument("--due", type=int, help="next action due in N days")
-    s.add_argument("--days", type=int, default=7)
+    s.add_argument("--days", type=int, help="quiet days (default: followups 7, sweep 60)")
+    s.add_argument("-y", "--yes", action="store_true", help="don't ask (sweep)")
     s.add_argument("--profile", default="config/profile.yaml")
     s.set_defaults(fn=cmd_track)
 

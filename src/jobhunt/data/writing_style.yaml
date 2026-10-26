@@ -1,0 +1,26 @@
+# Writing-style rules used by the application reviewer (`jobhunt review`) and the CV review.
+# Add your own pet hates under `writing_style.avoid_words` in config/profile.yaml.
+
+# phrase (case-insensitive regex) -> what to do instead
+cliches:
+  "i am writing to (apply|express)": "Open with the role and your strongest relevant result instead."
+  "to whom it may concern": "Address the team or hiring manager by name if you can find it."
+  "team player": "Show it: one example of a team outcome you made happen."
+  "hard[- ]working|hardworking": "Show effort through a result (what you shipped, by when)."
+  "results[- ]driven|detail[- ]oriented|self[- ]starter|go[- ]getter": "Replace the adjective with evidence."
+  "passionate about": "Say what you did about it - a project, contribution or outcome."
+  "think outside the box": "Describe the unusual approach you actually took."
+  "synergy|synergies": "Name the concrete collaboration and its result."
+  "leverag(e|ed|ing)": "Plain verb: use / apply / build on."
+  "delve|tapestry|testament to|in today's fast[- ]paced": "Sounds machine-written - cut it."
+  "dynamic (team|environment)": "Say what is actually fast-moving (releases, customers, scale)."
+  "proven track record": "Show the record: a number, a scope, a date."
+  "excellent communication skills": "Give an example: a doc, a talk, a cross-team decision you drove."
+  "i believe i (would be|am) (a )?(great|perfect|ideal) fit": "Let the evidence argue the fit."
+  "responsible for": "Lead with what you did, not the job description."
+
+cover_letter:
+  min_words: 150
+  max_words: 400
+cv:
+  words_per_page: 550

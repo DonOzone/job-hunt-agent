@@ -9,9 +9,10 @@ are in `.github/skills/*/SKILL.md`; load the matching one before acting.
 | "I found this job", "am I a fit?", "what have I reviewed?" | `add-job` |
 | "help me apply to job N" | `prepare-application` → `apply-job` |
 | review / tailor / reword my CV, convert to Word | `cv-review` |
+| "is my application ready?", check before sending | `application-review` |
 | what should I learn, courses, certifications | `cv-gap-analysis` |
 | test me on a skill, am I ready | `skill-evaluation` |
-| status of applications, follow-ups | `application-tracking` |
+| status of applications, follow-ups, dashboard | `application-tracking` |
 | interview prep | `interview-prep` |
 
 ## Hard rules

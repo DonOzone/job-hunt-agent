@@ -77,6 +77,9 @@ def fetch(url: str) -> Job:
     if any(h in url.lower() for h in NO_FETCH):
         raise RuntimeError("LinkedIn/Indeed/Glassdoor can't be fetched automatically - copy the description and "
                            "use `jobhunt add <url> --paste` (or --file description.txt)")
+    from .robots import require
+
+    require(url)
     resp = requests.get(url, headers={**UA, "Accept": "text/html"}, timeout=TIMEOUT)
     resp.raise_for_status()
     page = resp.text
