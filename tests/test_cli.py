@@ -44,3 +44,19 @@ def test_cli_end_to_end(tmp_path, tmp_home, monkeypatch, capsys):
     cli.main(["insights", *p])
     out = capsys.readouterr().out
     assert "Kubernetes" in out and "Insights for today" in out
+
+
+def test_installed_package_init_without_checkout_templates(tmp_path, monkeypatch):
+    import yaml
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(cli, "ROOT", tmp_path / "no-checkout")
+    cli.main(["--person", "example", "init"])
+    profile = tmp_path / "me" / "profiles" / "example" / "profile.yaml"
+    sites = profile.with_name("sites.yaml")
+    assert profile.exists() and sites.exists() and (tmp_path / ".env").exists()
+    assert yaml.safe_load(sites.read_text())["sites"]
+    assert not yaml.safe_load(profile.read_text())["name"]
+    profile.write_text("name: Preserved Name\n")
+    cli.main(["--person", "example", "init"])
+    assert profile.read_text() == "name: Preserved Name\n"

@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import csv
 import io
+import math
 import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from math import ceil
 from pathlib import Path
 from urllib.parse import quote_plus
 
@@ -50,22 +52,32 @@ def _canon(skill: str) -> str:
 
 
 def _to_float(value) -> float | None:
-    try:
-        return float(value) if value not in (None, "") else None
-    except (TypeError, ValueError):
+    if value in (None, ""):
         return None
+    try:
+        hours = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Learning resource hours must be numeric, got {value!r}") from exc
+    if not math.isfinite(hours) or hours <= 0:
+        raise ValueError("Learning resource hours must be positive and finite")
+    return hours
 
 
-def _from_row(row: dict) -> Resource | None:
+def _from_row(row: dict) -> Resource:
     skill = str(row.get("skill") or "").strip()
     name = str(row.get("name") or row.get("title") or "").strip()
     url = str(row.get("url") or row.get("link") or "").strip()
     if not skill or not (name or url):
-        return None
+        raise ValueError("Each learning resource needs a skill and a name/title or URL")
     kind = str(row.get("kind") or row.get("type") or "course").strip().lower()
     free = row.get("free")
     if isinstance(free, str):
-        free = free.strip().lower() in ("1", "true", "yes", "free")
+        value = free.strip().lower()
+        if value not in ("1", "true", "yes", "free", "0", "false", "no", "paid"):
+            raise ValueError("Learning resource free must be true or false")
+        free = value in ("1", "true", "yes", "free")
+    elif free is not None and not isinstance(free, bool):
+        raise ValueError("Learning resource free must be true or false")
     return Resource(skill=_canon(skill), name=name or url, url=url, kind=kind, free=free,
                     hours=_to_float(row.get("hours")), provider=str(row.get("provider") or ""),
                     note=str(row.get("note") or ""), origin="yours")
@@ -86,12 +98,13 @@ def _from_text(text: str) -> list[Resource]:
         if cells and cells[0].lower() == "skill":
             continue
         url = next((c for c in cells if URL_RE.fullmatch(c)), "")
-        rest = [c for c in cells[1:] if c and c != url]
-        hours = next((_to_float(c) for c in rest if _to_float(c) is not None), None)
-        title = next((c for c in rest if _to_float(c) is None), "")
+        # Text format is positional: Skill | Title | URL | optional hours.
+        if len(cells) < 2 or len(cells) > 4:
+            raise ValueError("Learning list lines must be Skill | Title | URL | optional hours")
+        hours = _to_float(cells[3]) if len(cells) == 4 else None
+        title = cells[1] if cells[1] != url else ""
         res = _from_row({"skill": cells[0] if cells else "", "name": title, "url": url, "hours": hours})
-        if res:
-            out.append(res)
+        out.append(res)
     return out
 
 
@@ -106,8 +119,12 @@ def load_user_resources(path: str | Path | None = None) -> list[Resource]:
             continue
         if p.suffix.lower() in (".yaml", ".yml"):
             raw = load_yaml(p)
+            if isinstance(raw, dict) and raw and "resources" not in raw:
+                raise ValueError(f"{p}: expected a 'resources' list")
             rows = raw.get("resources", []) if isinstance(raw, dict) else raw
-            return [r for r in (_from_row(row) for row in rows or [] if isinstance(row, dict)) if r]
+            if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+                raise ValueError(f"{p}: expected a resources list containing skill/name/URL mappings")
+            return [_from_row(row) for row in rows]
         return _from_text(p.read_text(encoding="utf-8"))
     return []
 
@@ -139,6 +156,8 @@ def build(gaps: list[Gap], user: list[Resource], extra_skills: list[str] | None 
     steps: list[Step] = []
     seen: set[str] = set()
     for skill in [_canon(s) for s in extra_skills or []]:  # skills you named always lead
+        if skill in seen:
+            continue
         seen.add(skill)
         steps.append(Step(skill=skill, category=taxonomy().get(skill, {}).get("category", "other"),
                           importance=100.0, jobs=0))
@@ -164,6 +183,8 @@ def unused_user_skills(user: list[Resource], steps: list[Step]) -> list[str]:
 
 def render(steps: list[Step], hours_per_week: int = 6, start: date | None = None, user_count: int = 0,
            leftover: list[str] | None = None) -> str:
+    if hours_per_week <= 0:
+        raise ValueError("hours_per_week must be positive")
     start = start or date.today()
     lines = ["# Ramp-up plan", "",
              f"{hours_per_week} h/week - starts {start.isoformat()} - "
@@ -174,7 +195,7 @@ def render(steps: list[Step], hours_per_week: int = 6, start: date | None = None
              "Log it with `jobhunt ramp-up log <skill>` and prove it with `jobhunt assess <skill>`.", ""]
     cursor = start
     for i, st in enumerate(steps, 1):
-        end = cursor + timedelta(weeks=max(1, round(st.hours / max(hours_per_week, 1)))) - timedelta(days=1)
+        end = cursor + timedelta(weeks=max(1, ceil(st.hours / hours_per_week))) - timedelta(days=1)
         why = f"asked by {st.jobs} matching job(s), importance {st.importance:.0f}/100" if st.jobs else "added by you"
         lines += [f"## {i}. {st.skill} ({cursor} -> {end}, ~{st.hours:.0f} h)", f"- Why: {why}", "- Learn:"]
         for r in st.resources:
