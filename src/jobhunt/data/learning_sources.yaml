@@ -1,0 +1,56 @@
+# Open learning sources used by `jobhunt ramp-up`. {q} is replaced by the URL-encoded skill name.
+# These are search links only - nothing is scraped, so they never go stale and need no accounts.
+# kind: video | course | docs | practice | community | roadmap
+# free: true if the content is normally free (some need an account or have paid certificates).
+sources:
+  - {name: "YouTube - full course / tutorial", provider: YouTube, kind: video, free: true,
+     url: "https://www.youtube.com/results?search_query={q}+full+course+for+beginners"}
+  - {name: "YouTube - crash course (fast overview)", provider: YouTube, kind: video, free: true,
+     url: "https://www.youtube.com/results?search_query={q}+crash+course+in+1+hour"}
+  - {name: "LinkedIn Learning", provider: LinkedIn Learning, kind: course, free: false,
+     url: "https://www.linkedin.com/learning/search?keywords={q}",
+     note: "Free trial, or free through many employers, libraries and universities"}
+  - {name: "freeCodeCamp", provider: freeCodeCamp, kind: course, free: true,
+     url: "https://www.freecodecamp.org/news/search/?query={q}"}
+  - {name: "Coursera (audit for free)", provider: Coursera, kind: course, free: true,
+     url: "https://www.coursera.org/search?query={q}&productDifficultyLevel=Beginner"}
+  - {name: "edX (audit for free)", provider: edX, kind: course, free: true,
+     url: "https://www.edx.org/search?q={q}"}
+  - {name: "MIT OpenCourseWare", provider: MIT OCW, kind: course, free: true,
+     url: "https://ocw.mit.edu/search/?q={q}"}
+  - {name: "Microsoft Learn", provider: Microsoft, kind: docs, free: true,
+     url: "https://learn.microsoft.com/en-us/search/?terms={q}"}
+  - {name: "Google Cloud Skills Boost / AWS Skill Builder", provider: Cloud vendors, kind: practice, free: true,
+     url: "https://www.cloudskillsboost.google/catalog?keywords={q}"}
+  - {name: "Udemy (wait for a sale, never pay full price)", provider: Udemy, kind: course, free: false,
+     url: "https://www.udemy.com/courses/search/?q={q}&price=price-free"}
+  - {name: "Kaggle Learn / datasets", provider: Kaggle, kind: practice, free: true,
+     url: "https://www.kaggle.com/search?q={q}"}
+  - {name: "GitHub - awesome lists and example projects", provider: GitHub, kind: practice, free: true,
+     url: "https://github.com/search?q=awesome+{q}&type=repositories"}
+  - {name: "roadmap.sh", provider: roadmap.sh, kind: roadmap, free: true,
+     url: "https://roadmap.sh/search?q={q}"}
+  - {name: "Stack Overflow / Reddit - ask and read", provider: Community, kind: community, free: true,
+     url: "https://www.reddit.com/search/?q={q}+learning+path"}
+
+# One concrete, public thing to build per skill category - evidence beats a certificate.
+practice_by_category:
+  language: "Solve 20 small problems (Exercism / Advent of Code), then build a CLI tool and publish it on GitHub."
+  backend: "Build a small CRUD API with auth, tests and a README; deploy it somewhere free."
+  frontend: "Rebuild a page you like, make it accessible and responsive, and host it."
+  data: "Pick an open dataset, answer 3 real questions with it, and publish the notebook with your conclusions."
+  ai: "Build a small end-to-end project (data -> model/prompt -> evaluation) and write up what failed."
+  cloud: "Deploy a small app using the free tier, with infrastructure as code and a cost note."
+  devops: "Automate build, test and deploy for a sample repo (CI/CD) and document the pipeline."
+  infrastructure: "Stand up and tear down an environment from code; write a short runbook."
+  security: "Do a CTF / lab series, then write up how you would fix three issues you found."
+  architecture: "Write a design doc with trade-offs for a system you know, and get one person to review it."
+  mobile: "Ship a small app with local storage and a screenshot walkthrough."
+  quality: "Add a real test suite and CI gate to an existing project; report the bugs it found."
+  process: "Run a small project with this process for 2 weeks and keep a retro log."
+  management: "Write down how you led a result (situation, action, outcome) and ask a mentor to challenge it."
+  business: "Write a one-page analysis of a business problem you solved, with numbers."
+  design: "Redesign one screen, explain each decision, and test it with 3 people."
+  tooling: "Use it on a real task this week and write a 10-line cheat sheet."
+  soft: "Collect two real examples (STAR format) you can tell in under 2 minutes."
+  other: "Use it on a real task and publish or write up the result."
