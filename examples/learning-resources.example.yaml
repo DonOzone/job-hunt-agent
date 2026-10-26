@@ -1,0 +1,10 @@
+# Your own learning list. Copy to me/learning-resources.yaml (git-ignored) and edit.
+# `jobhunt ramp-up` puts these first for the matching skill, then adds curated and open sources.
+# Fields: skill (required), name, url, kind (course|video|book|docs|cert), free, hours, provider, note.
+#
+# Plain text also works (me/learning-resources.md or .csv), one per line:
+#   Kubernetes | Kubernetes for Beginners | https://www.youtube.com/watch?v=XXXX | 4
+resources:
+  - {skill: Kubernetes, name: "Kubernetes tutorial for beginners", url: "https://www.youtube.com/results?search_query=kubernetes+tutorial", kind: video, free: true, hours: 4}
+  - {skill: Terraform, name: "HashiCorp Terraform tutorials", url: "https://developer.hashicorp.com/terraform/tutorials", kind: docs, free: true, hours: 8}
+  - {skill: SQL, name: "LinkedIn Learning - SQL Essential Training", kind: course, free: false, hours: 3, note: "Free through my library login"}

@@ -14,6 +14,7 @@ and keeps a timestamped record of everything — all on your own machine.
 3. [Your CV — format, import and export](#3-your-cv--format-import-and-export)
 4. [Daily workflow](#4-daily-workflow)
 5. ["I found a job myself" — add, check, apply](#5-i-found-a-job-myself--add-check-apply)
+   - [Ramp-up: learn the skills you're missing](#5b-ramp-up--turn-missing-skills-into-a-learning-path)
 6. [All commands](#6-all-commands)
 7. [Where your data lives](#7-where-your-data-lives)
 8. [Notifications](#8-notifications)
@@ -26,7 +27,29 @@ and keeps a timestamped record of everything — all on your own machine.
 
 ## 1. Quick start (10 minutes)
 
-You need **Python 3.10+** and **git**.
+You need **git** and either **[uv](https://docs.astral.sh/uv/)** (recommended — it installs Python for you) or
+**Python 3.10+** with pip. Pick one path; they do the same thing.
+
+### Option A — uv (recommended)
+
+Install uv once: Windows `winget install --id=astral-sh.uv -e` (or `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`),
+macOS/Linux `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+
+```bash
+git clone https://github.com/DonOzone/job-hunt-agent.git && cd job-hunt-agent
+uv sync --all-extras                    # creates .venv with the exact locked versions (uv.lock)
+uv run playwright install chromium      # only for the apply assistant / browser sources
+uv run jobhunt init                     # creates config/profile.yaml, config/sites.yaml and .env
+uv run jobhunt cv-import "C:\path\to\My CV.docx"      # or ~/Documents/my-cv.docx
+uv run jobhunt doctor                   # tells you exactly what is still missing
+uv run jobhunt daily
+```
+
+No activation needed: prefix every command with `uv run` (e.g. `uv run jobhunt list`). Prefer a bare `jobhunt` command
+from any folder? `uv tool install ".[all]"` — then run it from the project folder, because `config/`, `me/` and
+`workspace/` are relative to where you run it (or set `JOBHUNT_HOME` in `.env`). Update later with `git pull && uv sync --all-extras`.
+
+### Option B — pip + venv
 
 **Windows (PowerShell)**
 ```powershell
@@ -36,9 +59,9 @@ py -m venv .venv
 .\.venv\Scripts\Activate.ps1          # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -e ".[all]"
 playwright install chromium            # only needed for the apply assistant / browser sources
-jobhunt init                           # creates config/profile.yaml, config/sites.yaml and .env
+jobhunt init
 jobhunt cv-import "C:\path\to\My CV.docx"
-jobhunt doctor                         # tells you exactly what is still missing
+jobhunt doctor
 jobhunt daily
 ```
 
@@ -47,13 +70,11 @@ jobhunt daily
 git clone https://github.com/DonOzone/job-hunt-agent.git && cd job-hunt-agent
 python3 -m venv .venv && . .venv/bin/activate
 pip install -e ".[all]" && playwright install chromium
-jobhunt init
-jobhunt cv-import ~/Documents/my-cv.docx
-jobhunt doctor
-jobhunt daily
+jobhunt init && jobhunt cv-import ~/Documents/my-cv.docx && jobhunt doctor && jobhunt daily
 ```
 
 Remember to activate the venv (`.venv\Scripts\Activate.ps1` / `. .venv/bin/activate`) in every new terminal.
+Everywhere below, `jobhunt …` means `uv run jobhunt …` if you chose Option A.
 
 ---
 
@@ -128,6 +149,17 @@ It never invents skills or inflates your role ("contributed to" is never turned 
 
 ## 4. Daily workflow
 
+### Which workflow do I need?
+
+| You want to… | Do this |
+|---|---|
+| **Start from nothing** (once) | `init` → `cv-import` → edit `config/profile.yaml` → `doctor` |
+| **Hunt every day** (5 min) | `daily` → `list` → `fit --top 5` → `pick` → `track followups` |
+| **Apply to a job I found myself** | `add <url>` → `fit` → `prepare` → edit drafts → `research` → `review` → `apply` → `track` |
+| **Close my skill gaps** | `gaps` → `ramp-up` → learn and build → `ramp-up log` → `assess` → update CV (`cv-review`) |
+| **Prepare for an interview** | `track update <app> interview` → `interview-prep <job>` → `assess <skill>` |
+| **Weekly review** (15 min) | `track dashboard` → `track sweep` → `gaps` → `journal show` |
+
 ```bash
 jobhunt daily                 # search all sites → filter → rank → match CV → gaps → notify you
 jobhunt list                  # ranked list (region > remote > relocation > package > CV match)
@@ -135,6 +167,7 @@ jobhunt show 1                # full details for job #1
 jobhunt fit --top 5           # eligibility/language/logistics gates + fit score
 jobhunt gaps                  # most important missing skills + courses/certifications
 jobhunt study-plan            # week-by-week plan to close the top gaps
+jobhunt ramp-up               # learning path for your top gaps: your own list + free/open materials
 jobhunt pick                  # choose a job interactively, then prepare/apply
 jobhunt track followups       # who to chase today + a draft note for each (then: jobhunt track sent <app-id>)
 jobhunt track dashboard       # HTML funnel: submitted → response → interview → offer
@@ -172,6 +205,38 @@ the company, skills you have but hid · 💡 clichés and your own `writing_styl
 **After you send:** quiet for 7 days → `jobhunt track followups` drafts a short note; log it with
 `jobhunt track sent <app-id>`. After two follow-ups or 60 days of silence, `jobhunt track sweep` closes it as ghosted.
 
+## 5b. Ramp-up — turn missing skills into a learning path
+
+`jobhunt gaps` tells you *what* is missing; `jobhunt ramp-up` tells you *how to learn it*. For each of your top gaps
+(weighted by the jobs you shortlisted or applied to) it builds `workspace/ramp-up.md` with, in this order:
+
+1. **Your own list first** — courses, videos or books you or a mentor already picked.
+2. **Curated courses/certifications** for that skill (`src/jobhunt/data/courses.yaml`).
+3. **Open materials** — ready-made search links for YouTube (full course + crash course), LinkedIn Learning,
+   freeCodeCamp, Coursera/edX (audit free), MIT OpenCourseWare, Microsoft Learn, cloud-vendor labs, Udemy free,
+   Kaggle, GitHub "awesome" lists, roadmap.sh and community threads. Nothing is scraped and no account is needed.
+4. **A public proof project** to build, a check-in date and a target (`assess` ≥ 65%).
+
+```bash
+jobhunt ramp-up                                   # top 5 gaps from your saved jobs
+jobhunt ramp-up --skills "Kubernetes,Terraform"   # skills you name (add --with-gaps to append your top gaps)
+jobhunt ramp-up --free --hours-per-week 8         # hide paid options, set your pace
+jobhunt ramp-up --resources my-list.csv           # use a different list file
+jobhunt ramp-up log Kubernetes --hours 6 --note "deployed a demo app"   # record progress in your journal
+jobhunt assess Kubernetes                         # check yourself before it goes on your CV
+```
+
+**Share your own list** by copying [`examples/learning-resources.example.yaml`](examples/learning-resources.example.yaml)
+to `me/learning-resources.yaml`. Plain text also works (`me/learning-resources.md` or `.csv`), one per line:
+
+```
+Kubernetes | Kubernetes for Beginners | https://www.youtube.com/watch?v=XXXX | 4
+Terraform  | HashiCorp tutorials      | https://developer.hashicorp.com/terraform/tutorials | 8
+```
+
+Rule of thumb: a skill goes on your CV only after you have used it for real — then `cv-review` and `tailor` can
+present it honestly. Paid LinkedIn Learning is often free via an employer, library or university login.
+
 ---
 
 ## 6. All commands
@@ -181,7 +246,7 @@ the company, skills you have but hid · 💡 clichés and your own `writing_styl
 | 1. Collect matching jobs from sites | `search`, `daily`, `add`, `import` (CSV/JSON you saved) |
 | 2. Rank by region, remote, relocation, package | `rank`, `list`, `show` |
 | 3. Match your CV | `cv-match`, `fit`, `eligibility` |
-| 4. Rank skill gaps + courses/certs (weighted by your shortlist/applied decisions) | `gaps`, `study-plan` |
+| 4. Rank skill gaps + courses/certs (weighted by your shortlist/applied decisions) | `gaps`, `ramp-up`, `study-plan` |
 | 5. Local progress & learnings | `journal log/show`, `memory` |
 | 6. Timestamped application tracking | `track add/update/list/history/report/followups/sent/sweep/dashboard` |
 | 7. Assisted applying (Playwright) | `prepare`, `research`, `review`, `pick`, `apply` (`--dry-run`, `--headless`) |
@@ -198,6 +263,7 @@ Every command has `--help`. Jobs can be referred to by **rank** (`1`, `2` …) o
 ```
 config/profile.yaml   config/sites.yaml   .env     # your settings (git-ignored)
 me/cv/                                             # your baseline CV, variants, originals (git-ignored)
+me/learning-resources.yaml                         # your own learning list for `ramp-up` (optional)
 workspace/                                         # everything generated (git-ignored; JOBHUNT_HOME)
   jobs.json             latest ranked search results
   tracker.db            applications + timestamped history (SQLite)
@@ -206,6 +272,7 @@ workspace/                                         # everything generated (git-i
   applications/<job>/   application kits
   company-research/     notes per company (kept across applications)
   followups/            follow-up drafts      dashboard.html   funnel dashboard
+  ramp-up.md  skill-gaps.md  study-plan.md
   cv-review/  cv-versions/  tailoring/  interview-prep/  screenshots/
 ```
 
@@ -225,7 +292,7 @@ Set in `.env` (or the `notify:` block in the profile):
 ## 9. Using it with Copilot / agents
 
 Agent skills live in [`.github/skills/`](.github/skills) — job search, CV review, CV gap analysis, adding jobs and
-job memory, preparing applications, application review, applying, tracking, skill evaluation and interview prep. Ask in plain language,
+job memory, ramp-up learning paths, preparing applications, application review, applying, tracking, skill evaluation and interview prep. Ask in plain language,
 e.g. *"review my CV for job 2"*, *"I found this job: <url> — am I a fit?"*, *"help me apply to the Stripe role"*.
 See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
 [`docs/ai-job-search-insights.md`](docs/ai-job-search-insights.md) for ideas adopted from ai-job-search.
@@ -243,20 +310,21 @@ See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
 
 | Problem | Fix |
 |---|---|
-| `jobhunt` not found | Activate the venv, or run `python -m jobhunt` |
+| `jobhunt` not found | Use `uv run jobhunt …`, or activate the venv, or run `python -m jobhunt` |
+| `uv` not found | Install it (see Quick start) and reopen the terminal |
+| `ramp-up` says no gaps | Add jobs first (`search` / `add`), or name skills: `ramp-up --skills "Kubernetes"` |
 | PowerShell blocks `Activate.ps1` | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
 | No jobs found | `jobhunt search --no-filter` to see if filters are too strict; check `requirement.roles` |
 | A site fails | It's skipped with a warning; remove it from `config/sites.yaml` if it keeps failing |
 | `prepare` says *blocked* | A fit gate failed (visa/language); read the reason, or use `--force` |
-| Can't read a PDF CV | `pip install -e ".[docs]"` — or better, `cv-import` the Word version |
-| Apply browser doesn't open | `playwright install chromium` |
+| Can't read a PDF CV | `uv sync --all-extras` (or `pip install -e ".[docs]"`) — or better, `cv-import` the Word version |
+| Apply browser doesn't open | `uv run playwright install chromium` (or `playwright install chromium`) |
 
 ## 12. Development
 
 ```bash
-pip install -e ".[dev,all]"
-pytest -q
-ruff check src tests
+uv sync --all-extras && uv run pytest -q && uv run ruff check src tests
+# or: pip install -e ".[dev,all]" && pytest -q && ruff check src tests
 ```
 
 Catalogs (skills, courses, CV wording, principles, quizzes, interview questions) are YAML in `src/jobhunt/data/`

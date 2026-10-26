@@ -10,7 +10,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import __version__, assessment, gaps, insights, interview, journal, memory, ranking, tailor
+from . import __version__, assessment, gaps, insights, interview, journal, memory, rampup, ranking, tailor
 from .config import Profile, load_dotenv, load_sites, workspace_dir
 from .cv import extract_skills, match_job, read_cv
 from .matcher import filter_jobs
@@ -470,6 +470,38 @@ def cmd_gaps(args) -> None:
     print(f"\nReport: {path}")
 
 
+def cmd_ramp_up(args) -> None:
+    words = args.words
+    if words and words[0] == "log":
+        if len(words) < 2:
+            sys.exit('usage: jobhunt ramp-up log "<skill>" [--hours N] [--note "what I built"]')
+        skill = rampup._canon(" ".join(words[1:]))
+        hrs = f" ({args.hours:g} h)" if args.hours else ""
+        journal.log(f"Ramp-up: worked on {skill}{hrs}" + (f" - {args.note}" if args.note else ""),
+                    kind="learning", tags=["ramp-up", skill])
+        print(f"Logged. Next: `jobhunt assess \"{skill}\"` to check yourself before adding it to your CV.")
+        return
+    if words:
+        sys.exit("usage: jobhunt ramp-up [--skills A,B] [--resources FILE] | jobhunt ramp-up log <skill>")
+    try:
+        user = rampup.load_user_resources(args.resources)
+    except FileNotFoundError as e:
+        sys.exit(str(e))
+    named = [x.strip() for x in (args.skills or "").split(",") if x.strip()]
+    found = []
+    if not named or args.with_gaps:
+        found, _ = gaps.analyse(_jobs(), _cv_skills(args, _profile(args)), gaps.decision_weights(memory.records()))
+    steps = rampup.build(found, user, named, args.max_skills, args.free)
+    if not steps:
+        sys.exit("No gaps found. Add jobs (`jobhunt search` / `jobhunt add`) or name skills with --skills.")
+    text = rampup.render(steps, args.hours_per_week, user_count=len(user),
+                         leftover=rampup.unused_user_skills(user, steps))
+    path = _write("ramp-up.md", text)
+    print(text)
+    journal.log(f"Ramp-up plan: {', '.join(st.skill for st in steps)}", kind="learning", tags=["ramp-up"])
+    print(f"Saved: {path}")
+
+
 def cmd_study_plan(args) -> None:
     profile = _profile(args)
     found, _ = gaps.analyse(_jobs(), _cv_skills(args, profile), gaps.decision_weights(memory.records()))
@@ -913,6 +945,19 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("gaps", parents=[common], help="rank skill gaps + courses")
     s.add_argument("--jobs", type=int, help="only analyse top N ranked jobs")
     s.set_defaults(fn=cmd_gaps, top=15)
+
+    s = sub.add_parser("ramp-up", parents=[common],
+                       help="learning path for missing skills: your list + open materials")
+    s.add_argument("words", nargs="*", help='empty to plan, or: log "<skill>"')
+    s.add_argument("--skills", help="comma-separated skills to ramp up on (otherwise: your top gaps)")
+    s.add_argument("--with-gaps", action="store_true", help="add your top gaps after the skills you named")
+    s.add_argument("--resources", help="your learning list (default: me/learning-resources.yaml|csv|md)")
+    s.add_argument("--free", action="store_true", help="hide paid materials")
+    s.add_argument("--max-skills", type=int, default=5)
+    s.add_argument("--hours-per-week", type=int, default=6)
+    s.add_argument("--hours", type=float, help="with `log`: hours spent")
+    s.add_argument("--note", help="with `log`: what you did or built")
+    s.set_defaults(fn=cmd_ramp_up)
 
     s = sub.add_parser("study-plan", parents=[common], help="week-by-week plan to close gaps")
     s.add_argument("--hours", type=int, default=6)
