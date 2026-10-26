@@ -137,3 +137,40 @@ uv run jobhunt --person jane assess Kubernetes
 ```
 
 Back up `me/`, `config/` and your workspace root securely. Do not commit them or share people's CVs in issues or PRs.
+
+## Level 4: practise for a job application
+
+```mermaid
+flowchart TD
+    Application["Job rank/ID or application tracker ID"] --> Deck["Questions from skills, seniority and role themes"]
+    Deck --> Mode{"Practice mode"}
+    Mode --> Interview["Answer a mock interview question"]
+    Mode --> Flashcards["Think of an answer, then reveal the card back"]
+    Interview --> Reveal["Reveal curated answer or open-ended checklist"]
+    Flashcards --> Reveal
+    Reveal --> Rating{"I know / I don't know"}
+    Rating --> Know["Save confidence and continue"]
+    Rating --> Unknown["Save unknown topic and suggest learning links"]
+    Unknown --> Review["Study and practise --weak-only"]
+    Review --> Rating
+```
+
+```bash
+uv run jobhunt --person jane mock-interview --application 1 --list
+uv run jobhunt --person jane mock-interview --application 1
+uv run jobhunt --person jane mock-interview --application 1 --mode flashcards
+uv run jobhunt --person jane mock-interview --application 1 --weak-only --limit 5
+```
+
+Use a job rank/ID instead of `--application` if it is not tracked yet. IDs are separate namespaces:
+`mock-interview 1` is job rank 1, while `mock-interview --application 1` is application record 1.
+The original posting must still be available in that person's saved jobs or manually added jobs.
+The deck includes role-specific technical questions, curated knowledge checks, behavioural/STAR prompts,
+company questions and system-design/leadership prompts for senior roles. These are not guaranteed interview questions.
+
+The user rates each card explicitly with **I know** or **I don't know**. Answers, timestamped ratings and progress
+are local to the job and person, in `mock-interviews/<job-id>/`. Unknown topics produce a learning-review section
+in `practice.md`; the most recent rating controls whether the card remains in the weak queue.
+Use `--list` in non-interactive environments; agents can record an explicit user rating with
+`--rate <card-id> --rating know|dont-know` and an optional `--answer`.
+This confidence signal never replaces a skill assessment or changes application status.

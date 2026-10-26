@@ -65,6 +65,13 @@ def build_pack(job: Job, cv_skills: set[str]) -> str:
 
     lines += ["## 5. Questions to ask them", ""] + [f"- {q}" for q in data["ask_them"]] + [""]
     lines += ["## 6. Practice schedule", ""] + [f"- [ ] {s}" for s in data["schedule"]] + [""]
+    lines += ["## 7. Mock interview and flashcards", "",
+              f"- `jobhunt mock-interview {job.id} --list` - question types and revealable flashcards",
+              f"- `jobhunt mock-interview {job.id}` - answer one question at a time",
+              f"- `jobhunt mock-interview {job.id} --mode flashcards` - reveal, then rate I know / I don't know",
+              f"- `jobhunt mock-interview {job.id} --weak-only` - revisit your unknown cards",
+              "For a named person, include `--person <id>` on every command. "
+              "Self-ratings do not change verified skill assessments.", ""]
     return "\n".join(lines)
 
 

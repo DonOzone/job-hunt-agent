@@ -613,6 +613,48 @@ def cmd_interview(args) -> None:
         print(f"Prep pack: {interview.write_pack(job, cv)}")
 
 
+def cmd_mock_interview(args) -> None:
+    from . import mock_interview
+
+    if args.limit <= 0:
+        sys.exit("--limit must be positive")
+    if bool(args.job) == (args.application is not None):
+        sys.exit("Select a job ID/rank OR --application <application-id>, not both")
+    if args.application is not None:
+        tr = Tracker()
+        try:
+            application = tr.get(args.application)
+            if application is None:
+                sys.exit(f"Application {args.application} not found for the selected person")
+            job = find_job(application["job_id"])
+        finally:
+            tr.close()
+    else:
+        job = find_job(args.job)
+    cards = mock_interview.deck(job, _cv_skills(args, _profile(args)))
+    if bool(args.rate) != bool(args.rating):
+        sys.exit("--rate <card-id> and --rating know|dont-know must be supplied together")
+    if args.answer is not None and not args.rate:
+        sys.exit("--answer requires --rate and --rating")
+    if args.rate:
+        mock_interview.rate(job, cards, args.rate, args.rating, args.answer or "")
+    elif not args.list:
+        if not sys.stdin.isatty():
+            sys.exit("Interactive practice needs a terminal. Use --list, or --rate <card-id> --rating know|dont-know.")
+        chosen = mock_interview.select(job, cards, args.weak_only)[:args.limit]
+        if not chosen:
+            print("No cards rated 'I don't know' yet. Use --list or start without --weak-only.")
+        else:
+            try:
+                mock_interview.run(job, chosen, args.mode, input, print)
+            except (EOFError, KeyboardInterrupt):
+                print("\nPractice stopped; completed ratings have been saved.")
+    path = mock_interview.write_report(job, cards)
+    print(path.read_text(encoding="utf-8") if args.list else f"Practice and learning review: {path}")
+    if args.list:
+        print(f"Saved: {path}")
+
+
 def cmd_apply(args) -> None:
     from .apply import ApplyAssistant
 
@@ -1047,6 +1089,18 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("interview-prep", parents=[common], help="build interview prep packs")
     s.add_argument("job", nargs="?", help="job id or rank (default: top N)")
     s.set_defaults(fn=cmd_interview, top=3)
+
+    s = sub.add_parser("mock-interview", parents=[common], help="role-specific mock interview and rated flashcards")
+    s.add_argument("job", nargs="?", help="job ID or rank (or use --application)")
+    s.add_argument("--application", type=int, help="application tracker ID for the selected person")
+    s.add_argument("--mode", choices=["interview", "flashcards"], default="interview")
+    s.add_argument("--list", action="store_true", help="export question types, flashcards and learning review")
+    s.add_argument("--limit", type=int, default=10, help="cards per interactive session")
+    s.add_argument("--weak-only", action="store_true", help="practise only cards last rated I don't know")
+    s.add_argument("--rate", help="card ID to rate (for chat agents or non-interactive use)")
+    s.add_argument("--rating", choices=["know", "dont-know"])
+    s.add_argument("--answer", help="optional answer to store with --rate")
+    s.set_defaults(fn=cmd_mock_interview)
 
     s = sub.add_parser("apply", parents=[common], help="Playwright-assisted application")
     s.add_argument("job", help="job id or rank")
