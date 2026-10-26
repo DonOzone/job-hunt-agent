@@ -1,0 +1,8 @@
+# Public sources. Review and customise before searching.
+sites:
+  - {type: remoteok}
+  - {type: arbeitnow, pages: 2}
+  - {type: greenhouse, company: gitlab, name: GitLab}
+  - {type: greenhouse, company: stripe, name: Stripe}
+  - {type: lever, company: spotify, name: Spotify}
+  - {type: ashby, company: linear, name: Linear}

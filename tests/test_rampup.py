@@ -48,3 +48,39 @@ def test_cli_ramp_up_named_skills_and_log(tmp_home, capsys, tmp_path):
     cli.main(["ramp-up", "log", "kubernetes", "--hours", "3", "--note", "deployed demo"])
     assert "assess" in capsys.readouterr().out
     assert "deployed demo" in (tmp_home / "journal.jsonl").read_text()
+
+
+@pytest.mark.parametrize("contents", [
+    "resources:\n  - missing a mapping\n",
+    "resources:\n  - {skill: Python}\n",
+    "courses: []\n",
+    "resources:\n  - {skill: Python, name: Tutorial, hours: nonsense}\n",
+    "resources:\n  - {skill: Python, name: Tutorial, hours: -2}\n",
+    "resources:\n  - {skill: Python, name: Tutorial, hours: .nan}\n",
+    "resources:\n  - {skill: Python, name: Tutorial, free: maybe}\n",
+    "resources: [\n",
+])
+def test_learning_list_errors_are_explicit(tmp_path, contents):
+    path = tmp_path / "resources.yaml"
+    path.write_text(contents)
+    with pytest.raises(ValueError):
+        rampup.load_user_resources(path)
+
+
+@pytest.mark.parametrize("args", [
+    ["--hours-per-week", "0"], ["--max-skills", "-1"],
+    ["log", "Python", "--hours", "-1"], ["log", "Python", "--hours", "nan"],
+])
+def test_cli_rejects_invalid_learning_budgets(args):
+    with pytest.raises(SystemExit, match="positive"):
+        cli.main(["ramp-up", *args])
+
+
+def test_rampup_uses_enough_weeks_and_deduplicates_skills():
+    from datetime import date
+
+    steps = rampup.build([], [], ["Python", "python"], max_skills=5)
+    assert len(steps) == 1
+    steps[0].hours = 20
+    text = rampup.render(steps, 6, start=date(2026, 1, 1))
+    assert "2026-01-28" in text  # 20 hours requires four weeks at six hours/week, never three.

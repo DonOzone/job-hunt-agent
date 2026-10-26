@@ -75,7 +75,10 @@ def workspace_dir() -> Path:
 
 def load_yaml(path: str | Path) -> Any:
     with open(path, encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+        try:
+            return yaml.safe_load(fh) or {}
+        except yaml.YAMLError as exc:
+            raise ValueError(f"Invalid YAML in {path}: {exc}") from exc
 
 
 def load_data(name: str) -> Any:

@@ -28,7 +28,7 @@ jobhunt = "jobhunt.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-jobhunt = ["data/*.yaml"]
+jobhunt = ["data/*.yaml", "data/templates/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -4,11 +4,13 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import os
 import shutil
 import sys
 from dataclasses import replace
 from datetime import date
+from importlib import resources
 from pathlib import Path
 
 from . import __version__, assessment, gaps, insights, interview, journal, memory, rampup, ranking, tailor
@@ -104,8 +106,11 @@ def cmd_init(args) -> None:
     for src, dst in pairs:
         if dst.exists():
             print(f"exists:  {dst}")
-        elif src.exists():
-            shutil.copy(src, dst)
+        else:
+            template = resources.files("jobhunt.data").joinpath(
+                "templates", "env.example" if src.name == ".env.example" else src.name)
+            dst.write_text(src.read_text(encoding="utf-8") if src.exists() else template.read_text(encoding="utf-8"),
+                           encoding="utf-8")
             if args.person and dst.name == "profile.yaml":
                 import yaml
 
@@ -524,6 +529,10 @@ def cmd_gaps(args) -> None:
 
 
 def cmd_ramp_up(args) -> None:
+    if args.hours_per_week <= 0 or args.max_skills <= 0:
+        sys.exit("--hours-per-week and --max-skills must be positive")
+    if args.hours is not None and (not math.isfinite(args.hours) or args.hours <= 0):
+        sys.exit("--hours must be a positive finite number")
     words = args.words
     if words and words[0] == "log":
         if len(words) < 2:
@@ -556,6 +565,8 @@ def cmd_ramp_up(args) -> None:
 
 
 def cmd_study_plan(args) -> None:
+    if args.hours <= 0 or args.skills <= 0:
+        sys.exit("--hours and --skills must be positive")
     profile = _profile(args)
     found, _ = gaps.analyse(_jobs(), _cv_skills(args, profile), gaps.decision_weights(memory.records()))
     path = _write("study-plan.md", assessment.study_plan(found, args.hours, args.skills))

@@ -1,0 +1,17 @@
+# Blank installed-package profile. See README for the full annotated example.
+name: ""
+email: ""
+phone: ""
+location: ""
+cv_path: ""
+linkedin: ""
+github: ""
+preferred_regions: []
+prefer_remote: false
+open_to_relocation: false
+requirement:
+  roles: []
+work_authorization: []
+languages: {}
+answers: {}
+notify: {}

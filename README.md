@@ -19,6 +19,8 @@ flowchart LR
 ```
 
 Start with the quick start below, or see [step-by-step workflows with detailed diagrams](docs/workflows.md).
+For every feature's commands, generated files, feedback and next action, see the
+[usage and expected outputs reference](docs/usage-and-outputs.md).
 
 ---
 
@@ -285,7 +287,8 @@ files but preserves files saved under the final names.
 See the [detailed application workflow](docs/workflows.md#level-2-one-posting-to-application-documents).
 
 **After you send:** quiet for 7 days → `jobhunt track followups` drafts a short note; log it with
-`jobhunt track sent <app-id>`. After two follow-ups or 60 days of silence, `jobhunt track sweep` closes it as ghosted.
+`jobhunt track sent <app-id>`. After 60 days of silence by default, `jobhunt track sweep` offers to close it as ghosted.
+Two follow-ups trigger advice to stop chasing, not automatic closure.
 
 ## 5b. Ramp-up — turn missing skills into a learning path
 
@@ -455,5 +458,5 @@ uv sync --all-extras && uv run pytest -q && uv run ruff check src tests
 Catalogs (skills, courses, CV wording, principles, quizzes, interview questions) are YAML in `src/jobhunt/data/`
 — extend them without touching code. New job sources go in `src/jobhunt/sources/` (see `AGENTS.md`).
 
-> **CI:** the GitHub Actions workflow is in [`docs/ci.yml`](docs/ci.yml). Move it to `.github/workflows/ci.yml`
-> (GitHub web UI → *Add file* or locally) to enable tests on every push.
+> **CI is enabled:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs lint and tests on Python 3.10
+> and 3.12, including a local Playwright browser form. No manual workflow move is needed.
