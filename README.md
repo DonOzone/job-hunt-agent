@@ -82,6 +82,7 @@ All four are **git-ignored** — your personal details never leave your machine.
 | `languages` | `{English: fluent}` | Language gate |
 | `achievements` | 3 quantified wins | Cover letters and "why you" answers |
 | `answers` | `{notice period: 1 month}` | Re-used answers in application forms |
+| `writing_style` | `{sign_off: Kind regards, avoid_words: [ninja]}` | Cover letters, follow-ups, `review` |
 
 **Credentials:** none are needed. Job data comes from public APIs (Greenhouse, Lever, Ashby, RemoteOK, Arbeitnow,
 Remotive). The only secrets you might add are your **ntfy topic** and **webhook URL** in `.env` — treat them like
@@ -135,7 +136,8 @@ jobhunt fit --top 5           # eligibility/language/logistics gates + fit score
 jobhunt gaps                  # most important missing skills + courses/certifications
 jobhunt study-plan            # week-by-week plan to close the top gaps
 jobhunt pick                  # choose a job interactively, then prepare/apply
-jobhunt track followups       # who you should chase today
+jobhunt track followups       # who to chase today + a draft note for each (then: jobhunt track sent <app-id>)
+jobhunt track dashboard       # HTML funnel: submitted → response → interview → offer
 jobhunt journal log "Learned that X" --kind learning
 ```
 
@@ -149,6 +151,8 @@ jobhunt add --paste                                           # or paste the des
 jobhunt add https://linkedin.com/jobs/view/1 --file job.txt   # URL for reference + saved text
 jobhunt fit <id>                                              # gates + fit score + red flags
 jobhunt prepare <id>                                          # application kit (see below)
+jobhunt research <id>                                         # company notes, cached per company
+jobhunt review <id>                                           # hiring-manager check: ready to send?
 jobhunt apply <id>                                            # opens the form, pre-fills it, you submit
 jobhunt track update <app-id> interview --next "Prep system design"
 jobhunt memory list                                           # everything you've reviewed + your decisions
@@ -157,8 +161,16 @@ jobhunt memory decide <id> skip                               # hide jobs you re
 ```
 
 `prepare` builds `workspace/applications/<job>/`: fit report, tailored CV draft (.md + .docx), cover letter,
-form answers, interview prep, questions to ask, and a checklist. Postings are checked for hidden text,
+form answers, interview prep, questions to ask, a checklist and `review.md`. Postings are checked for hidden text,
 prompt-injection and scam signals before anything else happens.
+
+**Before you send:** edit the drafts (optionally save them as `cv-final.md` / `cover-letter-final.md`), fill in
+`jobhunt research <id>`, then run `jobhunt review <id>`. It flags, in order:
+⛔ unfilled placeholders · ⚠️ skills or numbers that aren't in your baseline CV, length, a letter that doesn't name
+the company, skills you have but hid · 💡 clichés and your own `writing_style.avoid_words`.
+
+**After you send:** quiet for 7 days → `jobhunt track followups` drafts a short note; log it with
+`jobhunt track sent <app-id>`. After two follow-ups or 60 days of silence, `jobhunt track sweep` closes it as ghosted.
 
 ---
 
@@ -169,10 +181,10 @@ prompt-injection and scam signals before anything else happens.
 | 1. Collect matching jobs from sites | `search`, `daily`, `add`, `import` (CSV/JSON you saved) |
 | 2. Rank by region, remote, relocation, package | `rank`, `list`, `show` |
 | 3. Match your CV | `cv-match`, `fit`, `eligibility` |
-| 4. Rank skill gaps + courses/certs | `gaps`, `study-plan` |
+| 4. Rank skill gaps + courses/certs (weighted by your shortlist/applied decisions) | `gaps`, `study-plan` |
 | 5. Local progress & learnings | `journal log/show`, `memory` |
-| 6. Timestamped application tracking | `track add/update/list/history/report/followups` |
-| 7. Assisted applying (Playwright) | `prepare`, `pick`, `apply` (`--dry-run`, `--headless`) |
+| 6. Timestamped application tracking | `track add/update/list/history/report/followups/sent/sweep/dashboard` |
+| 7. Assisted applying (Playwright) | `prepare`, `research`, `review`, `pick`, `apply` (`--dry-run`, `--headless`) |
 | 8. Mindset & strategy ("Who Moved My Cheese?" + best practices) | `insights` |
 | 9. Skill evaluation | `assess <skill>` (quiz), `assess --self`, `assess --list` |
 | 10. Interview prep | `interview-prep <job>` |
@@ -192,6 +204,8 @@ workspace/                                         # everything generated (git-i
   memory/               your own jobs + reviewed-jobs.md (notes, decisions)
   journal.md / .jsonl   progress & learnings
   applications/<job>/   application kits
+  company-research/     notes per company (kept across applications)
+  followups/            follow-up drafts      dashboard.html   funnel dashboard
   cv-review/  cv-versions/  tailoring/  interview-prep/  screenshots/
 ```
 
@@ -211,16 +225,18 @@ Set in `.env` (or the `notify:` block in the profile):
 ## 9. Using it with Copilot / agents
 
 Agent skills live in [`.github/skills/`](.github/skills) — job search, CV review, CV gap analysis, adding jobs and
-job memory, preparing applications, applying, tracking, skill evaluation and interview prep. Ask in plain language,
+job memory, preparing applications, application review, applying, tracking, skill evaluation and interview prep. Ask in plain language,
 e.g. *"review my CV for job 2"*, *"I found this job: <url> — am I a fit?"*, *"help me apply to the Stripe role"*.
-See [`AGENTS.md`](AGENTS.md) for the rules agents follow.
+See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
+[`docs/ai-job-search-insights.md`](docs/ai-job-search-insights.md) for ideas adopted from ai-job-search.
 
 ## 10. Guardrails
 
 - **You submit.** The apply assistant fills forms and stops; `--auto-submit` only clicks submit when you ask and all
   required fields are filled.
 - **No fabrication.** Missing skills are suggestions to add *only if true*; answers come from your profile.
-- **Respect site terms.** LinkedIn/Indeed/Glassdoor are not automated — add those jobs by URL or pasted text.
+- **Respect site terms.** robots.txt is checked before fetching any page; LinkedIn/Indeed/Glassdoor are never
+  automated — add those jobs by URL or pasted text.
 - **Posting checks.** Hidden text and instructions aimed at AI tools are removed and flagged; scam signals are reported.
 
 ## 11. Troubleshooting

@@ -9,13 +9,15 @@ workspace/applications/<company>_<role>/
   form-answers.md   copy-paste answers for the usual form questions (+ what is still missing)
   interview-prep.md prep pack for this job
   checklist.md      step-by-step: verify -> finalise -> submit -> track -> follow up
+  review.md         hiring-manager-style review of the kit (re-run `jobhunt review <job>` after editing)
+Company notes are shared across applications: workspace/company-research/<company>.md
 """
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-from . import cv_review, fit, interview, tailor
+from . import cv_review, fit, interview, research, review, tailor
 from .apply import EXPECTED_FLOWS, detect_ats, profile_values
 from .config import Profile, workspace_dir
 from .cv import extract_skills
@@ -76,7 +78,9 @@ def checklist(job: Job, report: fit.Fit, app_id: int | None) -> str:
         "Open cv-draft.md: replace every [placeholder] with a REAL number, delete anything untrue",
         "Re-run `jobhunt cv-review " + job.id + " --cv <your edited CV>` and aim for ≥ 70% keyword coverage",
         "Export the CV to PDF (or use --docx) - simple layout, no tables/columns for ATS parsing",
-        "Personalise cover-letter.md (one specific line about the company)",
+        f"Research {job.company}: fill 2+ sections of {research.path_for(job.company)}",
+        "Personalise cover-letter.md (why this company + the problem you'd solve first)",
+        f"Run `jobhunt review {job.id}` until there are no ⛔/⚠️ items",
         "Look for a referral: 1-2 people at " + job.company + " on LinkedIn - a referral beats a cold apply",
         f"Apply: `jobhunt apply {job.id}` (browser assistant) or apply manually via {job.url or 'the posting'}",
         f"Then: `jobhunt track update {app_id or '<app id>'} applied` (the assistant does this for you)",
@@ -113,4 +117,6 @@ def build(job: Job, profile: Profile, cv_text: str, cv_path: str, report: fit.Fi
     put("form-answers.md", form_answers(job, profile, report, cv_text))
     put("interview-prep.md", interview.build_pack(job, cv_skills))
     put("checklist.md", checklist(job, report, app_id))
+    files["company-research"] = research.brief(job)
+    put("review.md", review.render(review.review_kit(job, out, profile, cv_text)))
     return files

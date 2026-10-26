@@ -96,6 +96,7 @@ class Profile:
     fx_to_usd: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_FX_TO_USD))
     notify: dict[str, Any] = field(default_factory=dict)
     answers: dict[str, str] = field(default_factory=dict)
+    writing_style: dict[str, Any] = field(default_factory=dict)  # tone, avoid_words, sign_off
 
     @classmethod
     def load(cls, path: str | Path) -> Profile:

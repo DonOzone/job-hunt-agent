@@ -1,7 +1,7 @@
 """Generic careers-page scraper powered by Playwright (for JS-heavy sites without an API).
 
-Respect each site's terms of service and robots.txt. Sites like LinkedIn/Indeed prohibit
-automated scraping - use their official alerts/exports instead.
+robots.txt is checked before every page load; also respect each site's terms of service.
+Sites like LinkedIn/Indeed prohibit automated scraping - use their official alerts/exports instead.
 """
 from __future__ import annotations
 
@@ -19,7 +19,10 @@ def scrape(site: dict[str, Any]) -> list[Job]:
     except ImportError as exc:  # pragma: no cover - optional dependency
         raise RuntimeError(BROWSER_HINT) from exc
 
+    from .robots import allowed, require
+
     url = site["url"]
+    require(url)
     jobs: list[Job] = []
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=site.get("headless", True))
@@ -36,7 +39,7 @@ def scrape(site: dict[str, Any]) -> list[Job]:
             jobs.append(Job(title=title, company=site.get("name", url), url=urljoin(url, href), source="browser",
                             location=(loc_el.inner_text().strip() if loc_el else "")))
         if site.get("fetch_details"):
-            for job in jobs:
+            for job in (j for j in jobs if allowed(j.url)):
                 page.goto(job.url, wait_until="domcontentloaded")
                 job.description = page.inner_text(site.get("detail", "body"))
         browser.close()

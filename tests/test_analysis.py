@@ -59,6 +59,8 @@ def test_stale_followups():
     tr = Tracker()
     app = tr.add(Job(title="BE", company="Old", url="u", source="s"), "applied")
     tr.db.execute("UPDATE applications SET updated_at='2000-01-01T00:00:00+00:00' WHERE id=?", (app,))
+    assert tr.stale(7) == []  # the 'added' event is recent activity
+    tr.db.execute("UPDATE events SET ts='2000-01-01T00:00:00+00:00' WHERE app_id=?", (app,))
     assert [r["id"] for r in tr.stale(7)] == [app]
     tr.close()
 
