@@ -211,7 +211,7 @@ It never invents skills or inflates your role ("contributed to" is never turned 
 | **Apply to a job I found myself** | `add <url>` → `fit` → `application` → edit drafts → `research` → `review` → export final CV → `apply --cv <final.docx>` → `track` |
 | **Help different people** | `--person <id> init` → `cv-import --populate-profile` → review settings → use `--person <id>` on every command |
 | **Close my skill gaps** | `gaps` → `ramp-up` → learn and build → `ramp-up log` → `assess` → update CV (`cv-review`) |
-| **Prepare for an interview** | `track update <app> interview` → `interview-prep <job>` → `assess <skill>` |
+| **Prepare for an interview** | `track update <app> interview` → `interview-prep <job>` → `mock-interview <job>` → review unknown cards |
 | **Weekly review** (15 min) | `track dashboard` → `track sweep` → `gaps` → `journal show` |
 
 ```bash
@@ -335,11 +335,47 @@ present it honestly. Paid LinkedIn Learning is often free via an employer, libra
 | Job-specific CV + cover letter with evidence and change review | `application <job>` (same gates and kit as `prepare`) |
 | 8. Mindset & strategy ("Who Moved My Cheese?" + best practices) | `insights` |
 | 9. Skill evaluation | `assess <skill>` (quiz), `assess --self`, `assess --list` |
-| 10. Interview prep | `interview-prep <job>` |
+| 10. Interview prep and practice | `interview-prep <job>`, `mock-interview <job>` (`--mode flashcards`, `--list`, `--weak-only`) |
 | CV | `cv-import`, `cv-export`, `cv-review`, `tailor` |
 | Setup and people | `init`, `doctor`, `profile-from-cv`, `profiles`; `--person <id>` on any command |
 
 Every command has `--help`. Jobs can be referred to by **rank** (`1`, `2` …) or **ID**.
+
+### Mock interviews and "I know / I don't know" flashcards
+
+Practise for a specific role using either its saved job ID/rank or application tracker ID:
+
+```bash
+uv run jobhunt --person jane mock-interview 1 --list        # question types + all revealable cards
+uv run jobhunt --person jane mock-interview 1               # one question at a time, save your answer and rating
+uv run jobhunt --person jane mock-interview --application 2 --mode flashcards
+uv run jobhunt --person jane mock-interview 1 --weak-only --limit 5
+# Chat agents / non-interactive use: use a card ID printed by --list.
+uv run jobhunt --person jane mock-interview 1 --rate <card-id> --rating dont-know
+uv run jobhunt --person jane mock-interview 1 --rate <card-id> --rating know --answer "My improved answer"
+```
+
+Omit `--person jane` for the original single-user setup. Question types come from the posting's skills,
+seniority and themes: **technical**, **knowledge checks**, **behavioural/STAR**, **company research**, and
+**system design/leadership** for senior roles. These are practice suggestions, not predictions of exact interview questions.
+Try answering before revealing the back, then choose **I know [k]** or **I don't know [d]**; **q** stops safely.
+Knowledge cards show curated answers; open-ended cards show answer checklists, not invented model solutions.
+
+```mermaid
+flowchart LR
+    Role["Selected job or application"] --> Questions["Role-specific questions and flashcards"]
+    Questions --> Answer["Answer before revealing"]
+    Answer --> Rate{"I know?"}
+    Rate -->|Yes| Save["Save confidence rating"]
+    Rate -->|No| Learn["Learning links and focused practice"]
+    Learn --> Questions
+```
+
+The latest rating drives the weak-card queue; timestamped history and optional answers stay locally in
+`workspace/mock-interviews/<job-id>/ratings.jsonl`. `practice.md` lists question types, revealable flashcards,
+progress counts and learning links for unknown topics: your own list first, then curated/open materials,
+including YouTube and LinkedIn Learning. Named people use `workspace/people/<id>/mock-interviews/`.
+Self-ratings do **not** verify proficiency or automatically change CV skills, eligibility or application status.
 
 ## 7. Where your data lives
 
@@ -358,6 +394,7 @@ workspace/                                         # everything generated (git-i
   company-research/     notes per company (kept across applications)
   followups/            follow-up drafts      dashboard.html   funnel dashboard
   ramp-up.md  skill-gaps.md  study-plan.md
+  mock-interviews/<job>/ practice.md + ratings.jsonl (mock answers, card ratings and learning review)
   cv-review/  cv-versions/  tailoring/  interview-prep/  screenshots/
 ```
 

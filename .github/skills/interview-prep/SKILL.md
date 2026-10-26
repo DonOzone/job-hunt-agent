@@ -9,7 +9,10 @@ description: Build and run interview preparation for found or applied jobs - res
    Packs include seniority signal, CV strengths/gaps, research checklist, per-skill technical questions,
    system design for senior roles, behavioural questions chosen from the posting's language, STAR story slots,
    questions to ask, and a 5-day practice schedule.
-2. Mock interview mode: ask one question at a time from the pack, wait for the answer, then give feedback on
+2. Use `jobhunt mock-interview <job>` (or `--application <app-id>`) for saved practice; add `--mode flashcards`
+   for revealable cards, `--list` for all question types, and `--weak-only` for cards rated "I don't know".
+   See the `mock-interview` skill for chat-driven sessions and persistent ratings.
+   Ask one question at a time from the pack, wait for the answer, then give feedback on
    structure (STAR), specificity, metrics and length (aim for ~2 minutes). Suggest a stronger version.
 3. For gaps, coach an honest "learning story": what you know, how you'd ramp up, evidence of learning fast.
 4. Log practice and feedback: `jobhunt journal log "Mock: weak on system design trade-offs" --kind learning`.

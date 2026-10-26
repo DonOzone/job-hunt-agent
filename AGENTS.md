@@ -16,6 +16,7 @@ are in `.github/skills/*/SKILL.md`; load the matching one before acting.
 | test me on a skill, am I ready | `skill-evaluation` |
 | status of applications, follow-ups, dashboard | `application-tracking` |
 | interview prep | `interview-prep` |
+| mock interview, flashcards, I know / I don't know | `mock-interview` |
 
 ## Hard rules
 1. **Human in the loop.** Never submit an application, send an email or accept terms without explicit consent.
