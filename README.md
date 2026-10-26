@@ -1,1 +1,250 @@
-# job-hunt-agent
+# job-hunt-agent 🧭
+
+A **local, private job-hunt assistant** you run from a terminal (or drive through GitHub Copilot / any coding agent).
+It finds jobs, ranks them, compares them to your CV, tells you what to learn, helps you rewrite your CV and apply,
+and keeps a timestamped record of everything — all on your own machine.
+
+> **No API keys or accounts are required.** Everything optional (phone notifications, Teams/Slack) is one line in `.env`.
+
+---
+
+## Contents
+1. [Quick start (10 minutes)](#1-quick-start-10-minutes)
+2. [What you need to fill in](#2-what-you-need-to-fill-in)
+3. [Your CV — format, import and export](#3-your-cv--format-import-and-export)
+4. [Daily workflow](#4-daily-workflow)
+5. ["I found a job myself" — add, check, apply](#5-i-found-a-job-myself--add-check-apply)
+6. [All commands](#6-all-commands)
+7. [Where your data lives](#7-where-your-data-lives)
+8. [Notifications](#8-notifications)
+9. [Using it with Copilot / agents](#9-using-it-with-copilot--agents)
+10. [Guardrails](#10-guardrails)
+11. [Troubleshooting](#11-troubleshooting)
+12. [Development](#12-development)
+
+---
+
+## 1. Quick start (10 minutes)
+
+You need **Python 3.10+** and **git**.
+
+**Windows (PowerShell)**
+```powershell
+git clone https://github.com/DonOzone/job-hunt-agent.git
+cd job-hunt-agent
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1          # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -e ".[all]"
+playwright install chromium            # only needed for the apply assistant / browser sources
+jobhunt init                           # creates config/profile.yaml, config/sites.yaml and .env
+jobhunt cv-import "C:\path\to\My CV.docx"
+jobhunt doctor                         # tells you exactly what is still missing
+jobhunt daily
+```
+
+**macOS / Linux**
+```bash
+git clone https://github.com/DonOzone/job-hunt-agent.git && cd job-hunt-agent
+python3 -m venv .venv && . .venv/bin/activate
+pip install -e ".[all]" && playwright install chromium
+jobhunt init
+jobhunt cv-import ~/Documents/my-cv.docx
+jobhunt doctor
+jobhunt daily
+```
+
+Remember to activate the venv (`.venv\Scripts\Activate.ps1` / `. .venv/bin/activate`) in every new terminal.
+
+---
+
+## 2. What you need to fill in
+
+| File | Required? | What goes in it |
+|---|---|---|
+| `config/profile.yaml` | **Yes** | Who you are and what you want. Commented template: [`config/profile.example.yaml`](config/profile.example.yaml) |
+| your CV | **Yes** | Word, PDF or Markdown. `jobhunt cv-import` converts it and sets `cv_path` for you |
+| `config/sites.yaml` | Has defaults | Which job boards / company career pages to search ([example](config/sites.example.yaml)) |
+| `.env` | Optional | Notification settings and workspace location ([example](.env.example)) |
+
+All four are **git-ignored** — your personal details never leave your machine.
+
+**Profile — the fields that matter most**
+
+| Field | Example | Used for |
+|---|---|---|
+| `name`, `email`, `phone`, `location`, `linkedin` | | Application forms, CV checks |
+| `requirement.roles` | `[backend engineer, platform engineer]` | Which job titles to keep |
+| `requirement.must_have` / `nice_to_have` / `exclude` | `[python]` / `[kubernetes]` / `[intern]` | Filtering and match score |
+| `preferred_regions` | `[GLOBAL, MEA, EU, UK, NA]` | Ranking order (region first) |
+| `prefer_remote`, `open_to_relocation` | `true` | Ranking |
+| `target_salary_usd` | `90000` | Package score, salary answers |
+| `work_authorization` | `[Kenya]` | Eligibility gate (visa / sponsorship) |
+| `languages` | `{English: fluent}` | Language gate |
+| `achievements` | 3 quantified wins | Cover letters and "why you" answers |
+| `answers` | `{notice period: 1 month}` | Re-used answers in application forms |
+
+**Credentials:** none are needed. Job data comes from public APIs (Greenhouse, Lever, Ashby, RemoteOK, Arbeitnow,
+Remotive). The only secrets you might add are your **ntfy topic** and **webhook URL** in `.env` — treat them like
+passwords. Sites that need a login (e.g. LinkedIn) are never scraped: save jobs there and `jobhunt add <url>` them.
+
+---
+
+## 3. Your CV — format, import and export
+
+The agent keeps your CV as a simple **Markdown baseline** (easy to diff, review and tailor) and produces Word files
+in a clean house format: Calibri, bold 18 pt name, navy headline, 14 pt section titles with an underline rule,
+`EMPLOYER | City` in bold, *Role | Dates* in italics, and bullet lists.
+
+```markdown
+# JANE WANJIKU DOE
+**Senior Backend Engineer | Payments & Distributed Systems**
+Nairobi, Kenya | +254 700 000 000 | jane@example.com | linkedin.com/in/janedoe
+
+## PROFESSIONAL SUMMARY
+Backend engineer with 8+ years ...
+
+## PROFESSIONAL EXPERIENCE
+### EXAMPLE PAYMENTS LTD | Nairobi, Kenya
+_Senior Backend Engineer | Mar 2021 – Present_
+#### Payments platform
+- Designed and built an event-driven settlement service that cut reconciliation time by 70%.
+```
+
+A complete sample anyone can copy: [`examples/sample_cv.md`](examples/sample_cv.md) and
+[`examples/sample_cv.docx`](examples/sample_cv.docx).
+
+| Task | Command |
+|---|---|
+| Import your Word/PDF CV as the baseline (sets `cv_path`, keeps the original in `me/cv/originals/`) | `jobhunt cv-import "My CV.docx"` |
+| Export the baseline (or any `.md` CV) back to Word | `jobhunt cv-export` · `jobhunt cv-export me/cv/draft.md --a4` |
+| Review + rewrite the CV for a job | `jobhunt cv-review 3` (rank/ID) · `jobhunt cv-review --role "platform engineer"` |
+
+`cv-review` gives an ATS keyword score, missing keywords (add **only if true**), buried skills to surface,
+weak bullets, bullets that need a number, and a tailored **draft** (`.md` + `.docx`) in `workspace/cv-review/`.
+It never invents skills or inflates your role ("contributed to" is never turned into "led").
+
+---
+
+## 4. Daily workflow
+
+```bash
+jobhunt daily                 # search all sites → filter → rank → match CV → gaps → notify you
+jobhunt list                  # ranked list (region > remote > relocation > package > CV match)
+jobhunt show 1                # full details for job #1
+jobhunt fit --top 5           # eligibility/language/logistics gates + fit score
+jobhunt gaps                  # most important missing skills + courses/certifications
+jobhunt study-plan            # week-by-week plan to close the top gaps
+jobhunt pick                  # choose a job interactively, then prepare/apply
+jobhunt track followups       # who you should chase today
+jobhunt journal log "Learned that X" --kind learning
+```
+
+Schedule `jobhunt daily` with Windows Task Scheduler or cron to get a morning summary on your phone.
+
+## 5. "I found a job myself" — add, check, apply
+
+```bash
+jobhunt add https://boards.greenhouse.io/acme/jobs/123        # reads the posting (JSON-LD) from the URL
+jobhunt add --paste                                           # or paste the description (LinkedIn etc.)
+jobhunt add https://linkedin.com/jobs/view/1 --file job.txt   # URL for reference + saved text
+jobhunt fit <id>                                              # gates + fit score + red flags
+jobhunt prepare <id>                                          # application kit (see below)
+jobhunt apply <id>                                            # opens the form, pre-fills it, you submit
+jobhunt track update <app-id> interview --next "Prep system design"
+jobhunt memory list                                           # everything you've reviewed + your decisions
+jobhunt memory note <id> "Recruiter said budget is fixed"       # learnings per job
+jobhunt memory decide <id> skip                               # hide jobs you rejected
+```
+
+`prepare` builds `workspace/applications/<job>/`: fit report, tailored CV draft (.md + .docx), cover letter,
+form answers, interview prep, questions to ask, and a checklist. Postings are checked for hidden text,
+prompt-injection and scam signals before anything else happens.
+
+---
+
+## 6. All commands
+
+| Goal | Commands |
+|---|---|
+| 1. Collect matching jobs from sites | `search`, `daily`, `add`, `import` (CSV/JSON you saved) |
+| 2. Rank by region, remote, relocation, package | `rank`, `list`, `show` |
+| 3. Match your CV | `cv-match`, `fit`, `eligibility` |
+| 4. Rank skill gaps + courses/certs | `gaps`, `study-plan` |
+| 5. Local progress & learnings | `journal log/show`, `memory` |
+| 6. Timestamped application tracking | `track add/update/list/history/report/followups` |
+| 7. Assisted applying (Playwright) | `prepare`, `pick`, `apply` (`--dry-run`, `--headless`) |
+| 8. Mindset & strategy ("Who Moved My Cheese?" + best practices) | `insights` |
+| 9. Skill evaluation | `assess <skill>` (quiz), `assess --self`, `assess --list` |
+| 10. Interview prep | `interview-prep <job>` |
+| CV | `cv-import`, `cv-export`, `cv-review`, `tailor` |
+| Setup | `init`, `doctor` |
+
+Every command has `--help`. Jobs can be referred to by **rank** (`1`, `2` …) or **ID**.
+
+## 7. Where your data lives
+
+```
+config/profile.yaml   config/sites.yaml   .env     # your settings (git-ignored)
+me/cv/                                             # your baseline CV, variants, originals (git-ignored)
+workspace/                                         # everything generated (git-ignored; JOBHUNT_HOME)
+  jobs.json             latest ranked search results
+  tracker.db            applications + timestamped history (SQLite)
+  memory/               your own jobs + reviewed-jobs.md (notes, decisions)
+  journal.md / .jsonl   progress & learnings
+  applications/<job>/   application kits
+  cv-review/  cv-versions/  tailoring/  interview-prep/  screenshots/
+```
+
+Back it up by copying `config/`, `me/` and `workspace/` (e.g. into OneDrive).
+
+## 8. Notifications
+
+Set in `.env` (or the `notify:` block in the profile):
+
+| Channel | Setting |
+|---|---|
+| Console | always on |
+| Phone (free) | `JOBHUNT_NTFY_TOPIC=some-long-secret-name`, then subscribe to it in the [ntfy](https://ntfy.sh) app |
+| Teams / Slack / Discord | `JOBHUNT_WEBHOOK_URL=https://...` (incoming webhook) |
+| Desktop | `JOBHUNT_DESKTOP=1` (Windows built-in; Linux needs `notify-send`) |
+
+## 9. Using it with Copilot / agents
+
+Agent skills live in [`.github/skills/`](.github/skills) — job search, CV review, CV gap analysis, adding jobs and
+job memory, preparing applications, applying, tracking, skill evaluation and interview prep. Ask in plain language,
+e.g. *"review my CV for job 2"*, *"I found this job: <url> — am I a fit?"*, *"help me apply to the Stripe role"*.
+See [`AGENTS.md`](AGENTS.md) for the rules agents follow.
+
+## 10. Guardrails
+
+- **You submit.** The apply assistant fills forms and stops; `--auto-submit` only clicks submit when you ask and all
+  required fields are filled.
+- **No fabrication.** Missing skills are suggestions to add *only if true*; answers come from your profile.
+- **Respect site terms.** LinkedIn/Indeed/Glassdoor are not automated — add those jobs by URL or pasted text.
+- **Posting checks.** Hidden text and instructions aimed at AI tools are removed and flagged; scam signals are reported.
+
+## 11. Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `jobhunt` not found | Activate the venv, or run `python -m jobhunt` |
+| PowerShell blocks `Activate.ps1` | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
+| No jobs found | `jobhunt search --no-filter` to see if filters are too strict; check `requirement.roles` |
+| A site fails | It's skipped with a warning; remove it from `config/sites.yaml` if it keeps failing |
+| `prepare` says *blocked* | A fit gate failed (visa/language); read the reason, or use `--force` |
+| Can't read a PDF CV | `pip install -e ".[docs]"` — or better, `cv-import` the Word version |
+| Apply browser doesn't open | `playwright install chromium` |
+
+## 12. Development
+
+```bash
+pip install -e ".[dev,all]"
+pytest -q
+ruff check src tests
+```
+
+Catalogs (skills, courses, CV wording, principles, quizzes, interview questions) are YAML in `src/jobhunt/data/`
+— extend them without touching code. New job sources go in `src/jobhunt/sources/` (see `AGENTS.md`).
+
+> **CI:** the GitHub Actions workflow is in [`docs/ci.yml`](docs/ci.yml). Move it to `.github/workflows/ci.yml`
+> (GitHub web UI → *Add file* or locally) to enable tests on every push.

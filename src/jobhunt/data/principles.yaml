@@ -1,0 +1,82 @@
+# Paraphrased lessons. "cheese" = mindset ideas inspired by "Who Moved My Cheese?" (Spencer Johnson);
+# "strategy" = evidence-based job search practices. `when` = situations that surface the tip:
+# always | low_volume | low_response | rejections | interviewing | stale | skill_gaps
+cheese:
+  - title: Change is normal
+    lesson: Markets, tech stacks and hiring needs keep shifting. Expect your "cheese" to move and plan for it.
+    action: Review which roles/skills are trending in your gap report every week, not every year.
+    when: [always]
+  - title: Notice change early
+    lesson: Small signals (fewer replies, new skills in postings) warn you before the cheese is gone.
+    action: Check `jobhunt track report` weekly; if response rate drops, change one thing in your approach.
+    when: [low_response, always]
+  - title: Move with the cheese
+    lesson: The sooner you let go of what no longer works, the sooner you find what does.
+    action: After 3 rejections for the same role type, adjust CV positioning, target level or region.
+    when: [rejections]
+  - title: Act despite fear
+    lesson: Ask yourself what you would do if you weren't afraid - then do the smallest version of it today.
+    action: Apply to one stretch role and message one person at a company you admire.
+    when: [low_volume, always]
+  - title: Imagine the new cheese
+    lesson: Picturing yourself already in the new role makes the next step feel concrete and motivating.
+    action: Write the first line of your future LinkedIn headline and the 3 skills that will justify it.
+    when: [always, skill_gaps]
+  - title: Old beliefs don't find new cheese
+    lesson: Assumptions like "I need 100% of the requirements" keep you in an empty station.
+    action: Apply when you meet ~60-70% of requirements and can show you learn fast.
+    when: [low_volume, skill_gaps]
+  - title: Enjoy the search
+    lesson: Treating learning and exploration as rewarding keeps momentum through the long middle.
+    action: Log one learning per day with `jobhunt journal log "..." --kind learning`.
+    when: [always, rejections]
+  - title: Be ready to move again
+    lesson: Landing a job is not the end - keep skills and network fresh so the next change is easy.
+    action: Keep one study-plan item running even after you get an offer.
+    when: [interviewing, always]
+
+strategy:
+  - title: Quality over spray-and-pray
+    lesson: Tailored applications convert far better than mass-applying with one generic CV.
+    action: For each top-10 job, mirror 3-5 keywords from the posting (truthfully) in your CV summary and bullets.
+    when: [low_response, always]
+  - title: Referrals beat cold applications
+    lesson: Referred candidates are interviewed and hired at much higher rates than cold applicants.
+    action: For each top-ranked company, find one employee or alum and send a short, specific message.
+    when: [low_response, low_volume, always]
+  - title: Apply early
+    lesson: Many roles fill from the first wave of applicants; postings older than ~2-3 weeks convert worse.
+    action: Run `jobhunt run` daily and apply to new strong matches within 48 hours.
+    when: [low_volume, always]
+  - title: Quantify impact
+    lesson: Bullets with numbers (%, $, time, users) stand out to recruiters and ATS reviewers.
+    action: Rewrite your top 5 bullets as "Did X, measured by Y, by doing Z".
+    when: [low_response]
+  - title: Make the ATS happy
+    lesson: Simple formatting and exact skill names help your CV get parsed and matched.
+    action: Use a single-column CV, standard headings, and the exact skill names from your gap report.
+    when: [low_response]
+  - title: Follow up
+    lesson: A polite follow-up after 5-7 business days is normal and often revives a stalled application.
+    action: Run `jobhunt track followups` and send a 3-sentence note restating fit and interest.
+    when: [stale]
+  - title: Prepare stories, not answers
+    lesson: Interviewers remember concrete STAR stories with results more than generic claims.
+    action: Build 6 STAR stories from the interview prep pack and rehearse them out loud.
+    when: [interviewing]
+  - title: Ask for feedback
+    lesson: Rejections are data. Even a single line of feedback can redirect your preparation.
+    action: Reply to rejections thanking them and asking for one thing you could improve; log it as a learning.
+    when: [rejections]
+  - title: Close the top gap, visibly
+    lesson: A recognised certificate or public project on your #1 gap changes how recruiters read your CV.
+    action: Start the first item in `jobhunt study-plan` this week and post progress publicly.
+    when: [skill_gaps]
+  - title: Keep a healthy pipeline
+    lesson: Offers come from volume x conversion. Aim for a steady weekly flow of quality applications.
+    action: Target 5-10 tailored applications per week and track them all.
+    when: [low_volume]
+  - title: Negotiate with data
+    lesson: Your ranked list shows real package ranges - use them to anchor salary conversations.
+    action: Note the 75th percentile of packages in your region before any offer call.
+    when: [interviewing]

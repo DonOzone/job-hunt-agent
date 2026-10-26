@@ -1,0 +1,111 @@
+research:
+  - Read the job post twice; highlight the top 5 requirements and map one story to each
+  - Company mission, products, customers and business model (how do they make money?)
+  - Recent news, funding, launches or layoffs (last 6 months)
+  - Engineering/product blog, open-source repos and tech stack
+  - Interviewers on LinkedIn - background, posts, shared connections
+  - Glassdoor / Blind interview reports for this role
+  - Salary range for this role and region (use your ranked-jobs report as a benchmark)
+
+technical:
+  Python:
+    - Explain generators vs lists and when you'd use each.
+    - How do you profile and speed up a slow Python service?
+    - How do you structure and test a medium-sized Python project?
+  JavaScript:
+    - Explain the event loop, microtasks and macrotasks.
+    - How do closures work? Give a practical use.
+  TypeScript:
+    - When would you use generics, and what are utility types like Partial and Pick?
+  React:
+    - How does reconciliation work and when do you reach for memoisation?
+    - How do you manage server state vs client state?
+  SQL:
+    - Write a query to find the second-highest salary per department.
+    - How do you diagnose a slow query? (EXPLAIN, indexes, statistics)
+  AWS:
+    - Design a highly available web app on AWS - which services and why?
+    - How would you secure an S3 bucket that serves private user files?
+  Kubernetes:
+    - Walk through what happens when you run kubectl apply on a Deployment.
+    - How do you debug a pod stuck in CrashLoopBackOff?
+  Docker:
+    - How do you make a production image small and secure?
+  Terraform:
+    - How do you manage state and secrets across environments?
+  CI/CD:
+    - Design a pipeline that ships safely to production multiple times a day.
+  System Design:
+    - Design a URL shortener / rate limiter / notification service.
+    - How would you scale reads 10x? Writes 10x?
+  Machine Learning:
+    - How do you detect and handle data leakage?
+    - Explain bias-variance trade-off with an example from your work.
+  LLMs:
+    - How would you build and evaluate a RAG system? How do you reduce hallucinations?
+  Data Engineering:
+    - Batch vs streaming - how do you choose? How do you guarantee idempotency?
+  Data Analysis:
+    - Walk through an analysis that changed a business decision.
+  Security:
+    - Explain the OWASP Top 10 risks most relevant to this company's product.
+  Testing:
+    - How do you decide what to unit-test vs integration-test vs E2E-test?
+  Product Management:
+    - How do you prioritise a roadmap with conflicting stakeholder requests?
+  Project Management:
+    - Tell me about a project that went off track and how you recovered it.
+
+senior:
+  - Design a system end-to-end for this company's core product; discuss trade-offs and failure modes.
+  - How have you influenced technical direction across teams without authority?
+  - How do you grow other engineers? Give an example of someone you mentored.
+  - Describe a time you balanced tech debt against delivery pressure.
+
+behavioural:
+  core:
+    keywords: []
+    questions:
+      - Tell me about yourself (90-second pitch tailored to this role).
+      - Why this company and why this role now?
+      - Tell me about your proudest achievement - what was the measurable impact?
+      - Describe a failure and what you changed afterwards.
+  ownership:
+    keywords: [ownership, own, accountable, end-to-end, autonomy]
+    questions:
+      - Tell me about a time you took ownership of a problem outside your remit.
+  collaboration:
+    keywords: [collaborat, cross-functional, stakeholder, team]
+    questions:
+      - Describe a conflict with a colleague or stakeholder and how you resolved it.
+  customer:
+    keywords: [customer, user, client]
+    questions:
+      - Tell me about a time you went deep to understand a customer's problem.
+  ambiguity:
+    keywords: [ambiguity, fast-paced, startup, scrappy, changing]
+    questions:
+      - Describe a time requirements changed late - how did you adapt? (moving cheese!)
+  leadership:
+    keywords: [lead, mentor, manage, coach]
+    questions:
+      - Tell me about a time you led without formal authority.
+  learning:
+    keywords: [learn, curious, growth]
+    questions:
+      - Tell me about a skill you had to learn quickly to deliver something.
+
+ask_them:
+  - What does success look like in the first 90 days?
+  - What is the biggest challenge the team faces right now?
+  - How are decisions made and how is impact measured?
+  - What do you enjoy most about working here?
+  - What are the next steps in the process and the timeline?
+
+schedule:
+  - Day 1 - research checklist + 90-second pitch recorded on video
+  - Day 2 - 6 STAR stories written; rehearse out loud
+  - Day 3 - technical questions for strengths; 2 timed practice problems
+  - Day 4 - prepare honest "learning story" for each gap
+  - Day 5 - mock interview (friend, Pramp or interviewing.io); log learnings with `jobhunt journal log`
+  - After interview - thank-you email within 24h; `jobhunt track update <id> interview --note "..."`

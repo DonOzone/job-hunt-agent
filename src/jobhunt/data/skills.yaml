@@ -1,0 +1,67 @@
+# Skill taxonomy used to extract skills from CVs and job descriptions.
+# weight: how much a skill typically matters when it is listed (1.0 = normal, 2.0 = core/hard requirement).
+# case_sensitive: match the skill name with exact case (avoids "go"/"rust"/"spring" false positives).
+# cs_aliases: extra exact-case aliases. Add your own domain skills here.
+Python: {category: language, weight: 2.0, aliases: [python3]}
+JavaScript: {category: language, weight: 2.0, aliases: [javascript, ecmascript, es6]}
+TypeScript: {category: language, weight: 2.0, aliases: [typescript]}
+Java: {category: language, weight: 2.0, aliases: []}
+Kotlin: {category: language, weight: 1.5, aliases: []}
+C#: {category: language, weight: 2.0, aliases: [csharp, ".net", dotnet, "asp.net"]}
+Go: {category: language, weight: 2.0, aliases: [golang], case_sensitive: true}
+Rust: {category: language, weight: 1.5, aliases: [], case_sensitive: true}
+C++: {category: language, weight: 2.0, aliases: [cpp]}
+Ruby: {category: language, weight: 1.5, aliases: [ruby on rails, rails]}
+PHP: {category: language, weight: 1.5, aliases: [laravel]}
+Swift: {category: language, weight: 1.5, aliases: [swiftui], case_sensitive: true}
+Scala: {category: language, weight: 1.5, aliases: []}
+SQL: {category: data, weight: 1.5, aliases: [postgresql, postgres, mysql, t-sql, sql server]}
+NoSQL: {category: data, weight: 1.0, aliases: [mongodb, dynamodb, cassandra, redis]}
+React: {category: frontend, weight: 1.5, aliases: [react.js, reactjs, next.js, nextjs]}
+Angular: {category: frontend, weight: 1.5, aliases: [angularjs]}
+Vue: {category: frontend, weight: 1.5, aliases: [vue.js, vuejs, nuxt]}
+HTML/CSS: {category: frontend, weight: 1.0, aliases: [html, css, tailwind, sass]}
+Node.js: {category: backend, weight: 1.5, aliases: [nodejs, express.js, nestjs], cs_aliases: [Node, Express]}
+Django: {category: backend, weight: 1.2, aliases: [django rest framework]}
+FastAPI: {category: backend, weight: 1.2, aliases: [flask]}
+Spring: {category: backend, weight: 1.5, aliases: [spring boot, spring framework], case_sensitive: true}
+REST APIs: {category: backend, weight: 1.0, aliases: [restful, rest api, rest apis, openapi], cs_aliases: [REST]}
+GraphQL: {category: backend, weight: 1.0, aliases: [apollo]}
+Microservices: {category: architecture, weight: 1.2, aliases: [microservice, service-oriented, event-driven]}
+System Design: {category: architecture, weight: 1.5, aliases: [distributed systems, scalability, system architecture]}
+AWS: {category: cloud, weight: 2.0, aliases: [amazon web services, ec2, s3, lambda, cloudformation]}
+Azure: {category: cloud, weight: 2.0, aliases: [microsoft azure]}
+GCP: {category: cloud, weight: 2.0, aliases: [google cloud, bigquery]}
+Docker: {category: devops, weight: 1.5, aliases: [containers, containerization]}
+Kubernetes: {category: devops, weight: 1.8, aliases: [k8s, eks, aks, gke, helm]}
+Terraform: {category: devops, weight: 1.5, aliases: [infrastructure as code, iac, pulumi]}
+CI/CD: {category: devops, weight: 1.2, aliases: [github actions, gitlab ci, jenkins, circleci, continuous integration]}
+Linux: {category: devops, weight: 1.0, aliases: [unix, bash, shell scripting]}
+Observability: {category: devops, weight: 1.0, aliases: [prometheus, grafana, datadog, opentelemetry, monitoring]}
+Git: {category: tooling, weight: 0.8, aliases: [github, gitlab, version control]}
+Testing: {category: quality, weight: 1.2, aliases: [unit testing, tdd, pytest, jest, test automation]}
+Playwright: {category: quality, weight: 1.0, aliases: [cypress, selenium, end-to-end testing]}
+Identity & Auth: {category: security, weight: 1.3, aliases: [oauth, oauth2, oauth 2.0, openid connect, oidc, single sign-on, saml, okta, auth0, entra id, azure ad, azure active directory, identity and access management], cs_aliases: [SSO]}
+Security: {category: security, weight: 1.5, aliases: [cybersecurity, appsec, owasp, iam, penetration testing, siem]}
+Machine Learning: {category: ai, weight: 2.0, aliases: [machine-learning, scikit-learn, sklearn, xgboost], cs_aliases: [ML]}
+Deep Learning: {category: ai, weight: 1.5, aliases: [pytorch, tensorflow, keras, neural networks]}
+LLMs: {category: ai, weight: 1.5, aliases: [large language models, generative ai, genai, rag, prompt engineering, langchain, openai]}
+MLOps: {category: ai, weight: 1.2, aliases: [mlflow, kubeflow, sagemaker, vertex ai]}
+Data Engineering: {category: data, weight: 1.5, aliases: [etl, elt, data pipelines, airflow, dbt]}
+Spark: {category: data, weight: 1.5, aliases: [pyspark, databricks, hadoop]}
+Kafka: {category: data, weight: 1.2, aliases: [event streaming, kinesis, pub/sub]}
+Data Analysis: {category: data, weight: 1.5, aliases: [pandas, numpy, data analytics, statistics]}
+Power BI: {category: data, weight: 1.2, aliases: [tableau, looker, data visualization]}
+Excel: {category: business, weight: 0.8, aliases: [spreadsheets, vba]}
+Snowflake: {category: data, weight: 1.2, aliases: [redshift, data warehouse]}
+Mobile: {category: mobile, weight: 1.5, aliases: [ios, android, react native, flutter]}
+Agile: {category: process, weight: 0.8, aliases: [scrum, kanban, sprint]}
+Project Management: {category: management, weight: 1.2, aliases: [pmp, prince2, program management, roadmap]}
+Product Management: {category: management, weight: 1.5, aliases: [product strategy, product discovery, product roadmap]}
+Leadership: {category: soft, weight: 1.2, aliases: [mentoring, people management, team lead, coaching]}
+Communication: {category: soft, weight: 1.0, aliases: [stakeholder management, presentation skills, written communication]}
+UX Design: {category: design, weight: 1.5, aliases: [figma, user research, ui/ux, wireframing, prototyping]}
+Salesforce: {category: business, weight: 1.5, aliases: [crm, hubspot]}
+SAP: {category: business, weight: 1.5, aliases: [s/4hana, erp]}
+ITIL: {category: process, weight: 1.0, aliases: [itsm, servicenow, incident management]}
+Networking: {category: infrastructure, weight: 1.2, aliases: [tcp/ip, dns, ccna, firewalls, vpn]}
