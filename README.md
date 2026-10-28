@@ -468,6 +468,7 @@ See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
 |---|---|
 | `jobhunt` not found | Use `uv run jobhunt …`, or activate the venv, or run `python -m jobhunt` |
 | `uv` not found | Install it (see Quick start) and reopen the terminal |
+| Windows: `uv sync` fails with TLS `HandshakeFailure`, but pip works | Configure uv to use your organization's approved package proxy; see [Windows package proxy / TLS issue](#windows-package-proxy--tls-issue) below |
 | Wrong person's job list or CV | Stop; specify `--person <id>` on every command. `--profile` alone does not isolate state |
 | CV contact extraction kept example values | It fills empty fields only. Replace examples in the default profile or start a blank named profile |
 | `ramp-up` says no gaps | Add jobs first (`search` / `add`), or name skills: `ramp-up --skills "Kubernetes"` |
@@ -477,6 +478,60 @@ See [`AGENTS.md`](AGENTS.md) for the rules agents follow, and
 | `prepare` says *blocked* | A fit gate failed (visa/language); read the reason, or use `--force` |
 | Can't read a PDF CV | `uv sync --all-extras` (or `pip install -e ".[docs]"`) — or better, `cv-import` the Word version |
 | Apply browser doesn't open | `uv run playwright install chromium` (or `playwright install chromium`) |
+
+### Windows package proxy / TLS issue
+
+**Symptom:** `uv sync --all-extras` cannot download a package (for example,
+`pluggy==1.7.0`) from `files.pythonhosted.org` and reports
+`received fatal alert: HandshakeFailure`, while `pip install pytest` succeeds.
+
+This can happen on managed Windows machines when pip uses an approved corporate
+package proxy but uv accesses public PyPI directly. It is not necessarily a
+dependency-version problem: both commands can download the same package version.
+uv does not automatically read pip's index configuration.
+
+In PowerShell, configure uv to use the **same approved index shown in pip's
+`Looking in indexes:` output**, then retry from the repository root. For example,
+if your organization uses the Microsoft proxy:
+
+```powershell
+$env:UV_DEFAULT_INDEX = "https://packagefeedproxy.microsoft.io/pypi/simple/"
+uv sync --all-extras
+```
+
+Use your organization's actual approved index, not this example if it does not
+apply to your environment. The environment variable above affects the current
+PowerShell session. To persist it for future sessions:
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+    "UV_DEFAULT_INDEX",
+    "https://packagefeedproxy.microsoft.io/pypi/simple/",
+    "User"
+)
+```
+
+Changing the index can re-resolve packages and modify `uv.lock`, which records
+registry and download URLs. Review the diff before committing; do not manually
+replace wheel URLs or hashes, and do not commit an organization-specific index
+change unless it is intended for all contributors. Do not put credentials in
+tracked configuration.
+
+If the approved proxy also produces a TLS error and your organization's trusted
+certificates are installed in Windows, try using the system certificate store:
+
+```powershell
+uv sync --all-extras --system-certs
+```
+
+Older uv versions call this option `--native-tls`; check `uv sync --help` for the
+option your installed version supports. A handshake failure is not always a
+certificate-trust issue: if it persists, ask IT to check proxy/TLS policy.
+**Do not disable certificate verification or use insecure-host exceptions.**
+
+Installing pytest with pip into your user/global Python does not repair uv's
+project environment: uv manages the repository's `.venv` separately. No `pluggy`
+version change is needed to address the package-source mismatch above.
 
 ## 12. Development
 
