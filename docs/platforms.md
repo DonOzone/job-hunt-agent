@@ -300,6 +300,7 @@ directly and do not share that data with a hosted assistant.
 |---|---|
 | Agent only prints commands | Use a terminal-capable agent/mode and explicitly ask it to execute; approve the requested tool call |
 | `uv` or `jobhunt` not found | Install uv and reopen the terminal; use `uv run jobhunt --help` in the checkout, or activate the pip venv |
+| Windows: uv downloads fail with TLS `HandshakeFailure`, but pip works | Set uv's approved package index and, if needed, use Windows certificates; see the [known Windows proxy/TLS issue](../README.md#windows-package-proxy--tls-issue) |
 | Different or missing profile/jobs | Check the working directory and `--person` flag on every call; cloud sessions do not share local files |
 | Agent ignores skills | Ask it to read `AGENTS.md` and the exact `.github/skills/<name>/SKILL.md` file |
 | Search cannot reach job APIs | Review the agent's sandbox/network approval; do not disable all safeguards |
