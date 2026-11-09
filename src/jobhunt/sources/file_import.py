@@ -40,5 +40,6 @@ def load(site: dict[str, Any]) -> list[Job]:
             jobs.append(Job(
                 title=str(r["title"]).strip(), company=str(r["company"]).strip(), url=str(r.get("url", "")).strip(),
                 source="file", location=str(r.get("location", "")), description=desc,
-                remote=str(r.get("remote", "")).strip().lower() in TRUE, posted_at=str(r.get("posted_at", "")) or None))
+                remote=str(r.get("remote", "")).strip().lower() in TRUE, posted_at=str(r.get("posted_at", "")) or None,
+                opportunity_type=str(r.get("opportunity_type") or "job"), duration=str(r.get("duration", ""))))
     return jobs

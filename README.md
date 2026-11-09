@@ -25,6 +25,46 @@ Start with the quick start below, or see [step-by-step workflows with detailed d
 For every feature's commands, generated files, feedback and next action, see the
 [usage and expected outputs reference](docs/usage-and-outputs.md).
 
+## Web, desktop and mobile app
+
+The optional app adds accounts with private workspaces, job/project matching, application progress,
+learning resources, study cards and received-feedback tracking. Basic mode needs no LLM.
+Paste/import a response and create a manual task for your authorized, logged-in assistant; no mailbox
+is connected and nothing is sent automatically. Optional API integrations require a separate key,
+API billing and explicit approval of the displayed data, not consumer-subscription OAuth.
+
+```bash
+uv sync --extra web --extra docs
+npm install
+npm run build
+uv run jobhunt-web                 # API and built web UI on localhost:8650
+```
+
+For development, `npm run dev` starts React while `npm run backend` starts Python.
+`npm run desktop` runs the Electron desktop UI; `npm run desktop:build` produces an installer
+for the current OS. Desktop uses a separately running local or hosted Python API.
+`npm run mobile` runs the Expo React Native client; native Android/iOS builds require EAS
+or the relevant platform toolchain. See [app setup and deployment](docs/app.md) for pip/native
+Linux, macOS and Windows runs, Docker, GitHub builds, hosting, TLS and signing requirements.
+
+The app database is separate from CLI person profiles: default `workspace/web`, configurable with
+`JOBHUNT_WEB_HOME`. This initial deployment is a single-host SQLite pilot on persistent local disk,
+not a multi-replica production service. Public hosting requires a stable server secret, explicit
+Host/Origin configuration, HTTPS and the operational safeguards in the deployment guide.
+
+### Short-term projects
+
+Contracts, freelance opportunities and explicitly imported projects use the same match, gap,
+draft and application-tracking workflow as jobs. Classification is heuristic; verify duration
+and engagement terms against the posting.
+
+```bash
+uv run jobhunt search --opportunity-type project
+uv run jobhunt add --file project.txt --opportunity-type project --duration "6 weeks"
+```
+
+Keep `--person <id>` on every CLI command when working with a named person's profile.
+
 ---
 
 ## Contents

@@ -1,0 +1,56 @@
+name: Deploy to explicitly configured single host
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Public GHCR image pinned by sha256 digest (ghcr.io/owner/image@sha256:...)"
+        required: true
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate image digest
+        env:
+          IMAGE: ${{ inputs.image }}
+        run: |
+          [[ "$IMAGE" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$ ]] || exit 1
+      - name: Deploy using configured SSH host and existing server secret file
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          IMAGE: ${{ inputs.image }}
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9.-]+$ ]] || exit 1
+          [[ "$DEPLOY_USER" =~ ^[a-zA-Z0-9_-]+$ ]] || exit 1
+          test -n "$DEPLOY_KEY" && test -n "$KNOWN_HOSTS"
+          mkdir -p .deploy
+          trap 'rm -rf .deploy' EXIT
+          printf '%s\n' "$DEPLOY_KEY" > .deploy/key
+          printf '%s\n' "$KNOWN_HOSTS" > .deploy/known_hosts
+          chmod 600 .deploy/key
+          ssh -i .deploy/key -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=.deploy/known_hosts "$DEPLOY_USER@$DEPLOY_HOST" \
+            bash -s -- "$IMAGE" <<'REMOTE'
+          set -euo pipefail
+          image="$1"
+          test -f /etc/jobhunt/backend.env
+          docker pull "$image"
+          docker volume create jobhunt-data >/dev/null
+          docker rm -f jobhunt-backend 2>/dev/null || true
+          docker run -d --name jobhunt-backend --restart unless-stopped --init \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --env-file /etc/jobhunt/backend.env \
+            -p 127.0.0.1:8650:8650 -v jobhunt-data:/data "$image"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8650/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo 'Backend health check failed; inspect the configured server.' >&2
+          exit 1
+          REMOTE

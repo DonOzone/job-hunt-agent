@@ -30,10 +30,20 @@ class Job:
     first_seen: str | None = None
     is_new: bool = False
     id: str = ""
+    opportunity_type: str = "job"
+    duration: str = ""
 
     def __post_init__(self) -> None:
+        if self.opportunity_type not in ("job", "project"):
+            raise ValueError("opportunity_type must be job or project")
         if not self.id:
-            self.id = hashlib.sha1(f"{self.source}|{self.company}|{self.title}|{self.url}".encode()).hexdigest()[:12]
+            self.id = self.default_id(self.opportunity_type)
+
+    def default_id(self, kind: str) -> str:
+        identity = f"{self.source}|{self.company}|{self.title}|{self.url}"
+        if kind == "project":
+            identity += "|project"
+        return hashlib.sha1(identity.encode()).hexdigest()[:12]
 
     @property
     def salary_mid(self) -> float | None:

@@ -132,6 +132,7 @@ def visa_sponsorship(text: str) -> bool | None:
 
 def enrich(job: Job) -> Job:
     from .guard import HIDDEN_BLOCK_RE, ZERO_WIDTH_RE
+    from .opportunities import classify
 
     raw = job.description or ""
     visible = ZERO_WIDTH_RE.sub("", HIDDEN_BLOCK_RE.sub(" ", raw))
@@ -152,7 +153,7 @@ def enrich(job: Job) -> Job:
         job.currency = job.currency or cur
     if job.region in ("", "UNKNOWN"):
         job.region = detect_region(job.location, job.description)
-    return job
+    return classify(job)
 
 
 def salary_usd(job: Job, fx: dict[str, float]) -> float:

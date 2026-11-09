@@ -45,13 +45,13 @@ SOURCES: dict[str, Callable[[dict[str, Any]], list[Job]]] = {
 }
 
 
-def _dedupe_key(job: Job) -> tuple[str, str]:
-    return re.sub(r"\W+", "", job.company.lower()), re.sub(r"\W+", "", job.title.lower())
+def _dedupe_key(job: Job) -> tuple[str, str, str]:
+    return re.sub(r"\W+", "", job.company.lower()), re.sub(r"\W+", "", job.title.lower()), job.opportunity_type
 
 
 def dedupe(jobs: list[Job]) -> list[Job]:
     """The same posting often appears on several boards - keep the most detailed copy."""
-    best: dict[tuple[str, str], Job] = {}
+    best: dict[tuple[str, str, str], Job] = {}
     for job in jobs:
         key = _dedupe_key(job)
         if key not in best or len(job.description) > len(best[key].description):

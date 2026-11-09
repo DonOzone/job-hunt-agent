@@ -1,0 +1,29 @@
+{
+  "name": "@jobhunt/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Installed Job Hunt dashboard client; backend installed separately",
+  "author": "Job Hunt contributors",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.cjs && node --test security.test.cjs",
+    "package": "electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "42.11.18",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "org.jobhunt.desktop",
+    "productName": "Job Hunt",
+    "directories": { "output": "release" },
+    "files": ["main.cjs", "security.cjs", "package.json"],
+    "extraResources": [{ "from": "../web/dist", "to": "web", "filter": ["**/*"] }],
+    "asar": true,
+    "mac": { "target": ["dmg", "zip"], "category": "public.app-category.productivity" },
+    "win": { "target": ["nsis"], "signAndEditExecutable": false },
+    "linux": { "target": ["AppImage", "deb"], "category": "Office" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}

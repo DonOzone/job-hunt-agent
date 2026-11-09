@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optional-AI app: architecture and review boundaries</title>
+<style>
+:root { --ink:#111; --paper:#fffff8; --accent:#b03; --good:#4a7c3f; --warn:#b06a2a; }
+body { background:var(--paper); color:var(--ink); margin:0 auto; max-width:1400px; padding:2rem;
+  font-family:Palatino,"Palatino Linotype",Georgia,serif; font-size:19px; line-height:1.6; }
+article { max-width:55rem; margin:0 auto; }
+h1 { font-weight:400; font-size:3rem; line-height:1.1; margin-bottom:.3rem; }
+h2 { font-weight:400; font-style:italic; font-size:1.7rem; margin-top:3rem; border-top:1px solid; padding-top:1rem; }
+p,li { font-size:1.1rem; }
+code { font-family:Consolas,monospace; font-size:.92rem; }
+a { color:inherit; }
+.callout { border-left:3px solid var(--warn); padding:1rem 1.5rem; margin:2rem 0; }
+.marginnote { float:right; clear:right; margin-right:-40%; width:35%; font-size:1rem; line-height:1.4; }
+label.margin-toggle { display:inline; cursor:pointer; color:var(--accent); }
+input.margin-toggle { display:none; }
+table { border-collapse:collapse; width:100%; font-size:1rem; }
+td,th { text-align:left; vertical-align:top; border-bottom:1px solid; padding:.7rem; }
+@media(max-width:1200px) {
+  .marginnote { display:none; }
+  .margin-toggle:checked + .marginnote { display:block; float:none; margin:1rem 0; width:100%; }
+}
+</style>
+</head>
+<body><article>
+<h1>Useful without AI</h1>
+<p><em>Review record for the optional job-hunt application. November 9, 2026.</em></p>
+<div class="callout"><strong>Draft implementation, not a production-readiness claim.</strong>
+The Python package can be built without bundled UI assets. Frontend, native packaging and HTTP
+integration verification remain required before release.</div>
+<h2>Calibrated goal and model</h2>
+<p>Keep the existing deterministic Python CLI useful, while adding account-scoped job and
+short-term project workflows, learning practice and received-feedback tracking. An app account
+and authorization to an LLM are separate concerns. Consumer subscription login does not
+implicitly authorize this service to call a provider API.</p>
+<p>The agreed approach reuses matching, ranking, tailoring and learning catalogs behind an
+authenticated service boundary. It never turns an existing CLI person's workspace into a
+shared hosted database.<label class="margin-toggle" for="scope-note">[scope]</label>
+<input class="margin-toggle" type="checkbox" id="scope-note">
+<span class="marginnote">App data defaults to <code>workspace/web</code>. Owner IDs come from
+authenticated sessions, not client-submitted person identifiers. Existing CLI
+<code>--person</code> workflows remain separate.</span></p>
+<h2>Implementation boundaries</h2>
+<table>
+<thead><tr><th>Boundary</th><th>Implemented contract</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Clients</td><td>React web and Electron desktop UI; Expo React Native mobile.
+Desktop needs a separately running local or hosted Python backend.</td>
+<td><a href="../apps/web/src/main.tsx">Web client</a>,
+<a href="../packages/client/src/index.ts">shared API client</a></td></tr>
+<tr><td>Accounts and storage</td><td>Opaque hashed sessions, owner-scoped records and
+durable queued work. Initial hosted design is single-host SQLite WAL on persistent local
+disk, not PostgreSQL, NFS or multi-replica high availability.</td>
+<td><a href="../src/jobhunt/web/auth.py">Authentication</a>,
+<a href="../src/jobhunt/web/db.py">storage</a></td></tr>
+<tr><td>Basic workflows</td><td>Match jobs/projects, track applications and feedback,
+record learning evidence, and grade study cards without a model or invented qualifications.</td>
+<td><a href="../src/jobhunt/web/services.py">Domain reuse</a>,
+<a href="../src/jobhunt/opportunities.py">project classification</a></td></tr>
+<tr><td>Optional AI</td><td>Encrypted API keys, fixed provider destinations and explicit
+approval of the previewed data. Queued requests fail if the approved connection changes.</td>
+<td><a href="../src/jobhunt/web/ai.py">Adapters</a>,
+<a href="../src/jobhunt/web/worker.py">worker</a></td></tr>
+<tr><td>Received responses</td><td>Paste/import only selected feedback; manually copy a
+reviewed prompt to an authorized assistant and record its result. No mailbox OAuth,
+automatic replies, submissions or status changes.</td>
+<td><a href="../src/jobhunt/web/api.py">API routes and consent</a></td></tr>
+</tbody></table>
+<h2>Release gates and deliberate limits</h2>
+<p>Local npm installation encountered denied workspace symlinks and artifact-download
+errors. Windows event-loop initialization stalled inside the standard-library loopback
+socketpair before HTTP tests could execute. These are recorded blockers, not passing checks.
+Docker was unavailable on the implementation machine.</p>
+<p>CI must execute the API tests, TypeScript checks, web build and applicable native exports.
+Native signing and platform toolchains are separate requirements; no binaries have been
+signed or published. HTTPS, a durable server secret, explicit origins/hosts, backups,
+verified-email/password-recovery flows and deployment operations require review before
+public production use.</p>
+<p><a href="app.md">App setup and deployment guide</a> describes native, Docker and
+GitHub workflows. Provider keys, CVs, profiles, email content and browser state must never
+enter source commits, build contexts or public artifacts.</p>
+</article></body></html>
