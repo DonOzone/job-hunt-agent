@@ -76,6 +76,34 @@ def test_guard_scam_signals():
             "crypto/cheque/gift-card payment"} <= set(res.scam_signals)
 
 
+@pytest.mark.parametrize("text", [
+    "We never ask for \u2018recruitment fees\u2019, \u2018processing fees\u2019, \u2018interview fees\u2019, "
+    "or any other kind of money in exchange for offer letters or interviews.",
+    "We do not charge an application fee.",
+    "The employer does not charge processing fees or interview fees.",
+])
+def test_guard_explicit_no_fee_statements(text):
+    res = guard.check(text)
+    assert "asks for a fee/payment" not in res.scam_signals
+    assert res.cleaned == text
+
+
+@pytest.mark.parametrize("payment_request", [
+    "Pay a deposit to reserve your interview.",
+    "A training fee is required.",
+    "Send money before your start date.",
+    "However, pay the registration fee.",
+])
+def test_guard_no_fee_statement_does_not_hide_payment_requests(payment_request):
+    text = "We never ask for processing fees. " + payment_request
+    assert "asks for a fee/payment" in guard.check(text).scam_signals
+
+
+def test_guard_no_fee_statement_preserves_other_signals():
+    res = guard.check("We do not charge an application fee. Paid in USDT.")
+    assert "crypto/cheque/gift-card payment" in res.scam_signals
+
+
 # --------------------------------------------------------------------------- fit gates
 def test_citizenship_and_language_fail(me):
     r = fit.evaluate(make("Python. Must be a US citizen."), me, CV, set(extract_skills(CV)))

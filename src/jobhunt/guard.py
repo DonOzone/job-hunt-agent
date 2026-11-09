@@ -46,6 +46,13 @@ SCAM_PATTERNS = {
     "asks for sensitive documents early": r"(send|provide|upload).{0,30}(passport|national id|bank (details|account)"
                                          r"|social security|ssn)",
 }
+NO_FEE_RE = re.compile(
+    r"\b(?:never ask for|do not charge|does not charge|will not charge)\s+(?:(?:an?|any|the)\s+)?"
+    r"(?:[\"'\u2018\u201c]?(?:recruitment|application|processing|registration|training|interview|placement|medical)"
+    r"\s+fees?\b[\"'\u2019\u201d]?(?=\s*(?:[,.;!?\n]|\bor\b|\band\b|$))"
+    r"(?:\s*,\s*|\s+(?:or|and)\s+)?)+",
+    re.I,
+)
 
 
 @dataclass
@@ -117,6 +124,10 @@ def check(text: str, url: str = "", company: str = "") -> Integrity:
         else:
             kept.append(line)
     cleaned = "\n".join(kept)
-    scams = [name for name, pat in SCAM_PATTERNS.items() if re.search(pat, cleaned, re.I | re.S)]
+    scams = []
+    for name, pat in SCAM_PATTERNS.items():
+        candidate = NO_FEE_RE.sub("", cleaned) if name == "asks for a fee/payment" else cleaned
+        if re.search(pat, candidate, re.I | re.S):
+            scams.append(name)
     host, kind = verify_host(url, company)
     return Integrity(host, kind, cleaned.strip(), hidden, instructions, scams)
