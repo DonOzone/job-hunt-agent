@@ -1,0 +1,9 @@
+include AGENTS.md CLAUDE.md GEMINI.md LICENSE README.md uv.lock .gitignore
+include .github/copilot-instructions.md
+recursive-include .github/skills SKILL.md
+recursive-include config *.example.yaml
+recursive-include docs *.md
+include examples/sample_cv.md examples/learning-resources.example.yaml
+include imports/saved_jobs.example.csv
+recursive-include packaging *.md
+recursive-include tools *.py

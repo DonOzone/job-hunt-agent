@@ -24,6 +24,8 @@ flowchart LR
 Start with the quick start below, or see [step-by-step workflows with detailed diagrams](docs/workflows.md).
 For every feature's commands, generated files, feedback and next action, see the
 [usage and expected outputs reference](docs/usage-and-outputs.md).
+For downloadable skill ZIPs, wheel/source installation and version-tagged GitHub
+Actions builds, see [packaging and marketplace releases](docs/releases.md).
 
 ## Web, desktop and mobile app
 

@@ -19,7 +19,7 @@ jobs:
       - name: Install CLI, backend, document and test dependencies
         run: pip install -e '.[dev,browser,web,docs]'
       - run: playwright install --with-deps chromium
-      - run: ruff check src tests scripts
+      - run: ruff check src tests scripts tools
       - name: Run CLI and authenticated backend tests
         run: pytest -q
   apps:

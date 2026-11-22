@@ -12,6 +12,11 @@ API, ChatGPT Action or browser-chat connector.
 
 ## 1. Install the project once
 
+Prefer not to clone? [Release artifacts](releases.md) include a flat skill ZIP,
+a single-folder marketplace ZIP and Python wheel/source distributions.
+The ZIPs bundle the CLI and workflow skills; extract one and use its `scripts/app`
+directory for the repository-style commands below. A wheel installs the CLI only.
+
 You need Git and [uv](https://docs.astral.sh/uv/getting-started/installation/).
 Alternatively, use the [pip/venv instructions](../README.md#option-b--pip--venv).
 These commands work in a terminal, including PowerShell:
