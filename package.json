@@ -1,0 +1,17 @@
+{
+  "name": "job-hunt-agent-apps",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["packages/client", "apps/web", "apps/mobile", "apps/desktop"],
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "dev": "npm run dev --workspace @jobhunt/web",
+    "build": "npm run build --workspace @jobhunt/web && node scripts/package-ui.mjs",
+    "check": "npm run check --workspaces --if-present",
+    "backend": "node scripts/run-python.mjs",
+    "desktop": "npm run build && npm run start --workspace @jobhunt/desktop",
+    "desktop:build": "npm run build && npm run package --workspace @jobhunt/desktop",
+    "mobile": "npm run start --workspace @jobhunt/mobile",
+    "mobile:export": "npm run export --workspace @jobhunt/mobile"
+  }
+}

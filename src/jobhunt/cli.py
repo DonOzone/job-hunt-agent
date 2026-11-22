@@ -141,6 +141,9 @@ def _finish_search(args, profile: Profile, jobs: list) -> None:
 
     mine = memory.my_jobs()
     jobs = dedupe(jobs + mine) if mine else jobs
+    from .opportunities import select
+
+    jobs = select(jobs, getattr(args, "opportunity_type", "all"))
     skipped = memory.skipped_ids()
     if skipped:
         before = len(jobs)
@@ -229,6 +232,8 @@ def cmd_add(args) -> None:
     job.company = args.company or job.company or guard.verify_host(job.url)[0]
     job.location = args.location or job.location
     job.remote = job.remote or args.remote
+    job.opportunity_type = args.opportunity_type
+    job.duration = args.duration or ""
     if args.salary:
         job.description += f"\nSalary: {args.salary}"
     integrity = guard.check(job.description, job.url, job.company)
@@ -980,6 +985,7 @@ def build_parser() -> argparse.ArgumentParser:
         s = sub.add_parser(name, parents=[common], help=hlp)
         s.add_argument("--sites", help="job sites YAML (default: selected person's sites)")
         s.add_argument("--no-filter", action="store_true")
+        s.add_argument("--opportunity-type", choices=["all", "job", "project"], default="all")
         s.add_argument("--mode", choices=["strict", "weighted"], help="ranking mode (default: profile)")
         s.add_argument("--prep", type=int, default=3, help="interview packs for top N jobs (daily only)")
         s.set_defaults(fn=fn)
@@ -988,6 +994,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("files", nargs="+")
     s.add_argument("--no-filter", action="store_true")
     s.add_argument("--mode", choices=["strict", "weighted"])
+    s.add_argument("--opportunity-type", choices=["all", "job", "project"], default="all")
     s.set_defaults(fn=cmd_import)
 
     s = sub.add_parser("show", parents=[common], help="full details for one job")
@@ -1008,6 +1015,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--location")
     s.add_argument("--salary", help='e.g. "USD 80-100k" or "KES 450,000 per month"')
     s.add_argument("--remote", action="store_true")
+    s.add_argument("--opportunity-type", choices=["job", "project"], default="job")
+    s.add_argument("--duration", help="confirmed project duration, e.g. 3 months")
     s.add_argument("--note", help="why you like it / who referred you")
     s.set_defaults(fn=cmd_add)
 

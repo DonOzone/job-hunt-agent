@@ -16,7 +16,63 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e '.[dev,browser]'
+      - name: Install CLI, backend, document and test dependencies
+        run: pip install -e '.[dev,browser,web,docs]'
       - run: playwright install --with-deps chromium
-      - run: ruff check src tests
-      - run: pytest -q
+      - run: ruff check src tests scripts tools
+      - name: Run CLI and authenticated backend tests
+        run: pytest -q
+  apps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck web/mobile/shared client and run desktop checks
+        run: npm run check
+      - run: npm run build
+      - run: npm run mobile:export
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build
+      - run: python -m build
+      - run: python scripts/test_check_distributions.py
+      - run: python scripts/check-distributions.py dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-distribution-with-web
+          path: dist/*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-js-assets-not-installers
+          path: apps/mobile/dist
+          if-no-files-found: error
+  container-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: jobhunt:ci
+      - name: Check non-root persistent container health
+        run: |
+          set -euo pipefail
+          secret="$(openssl rand -hex 48)"
+          docker run -d --name jobhunt-check -p 127.0.0.1:8650:8650 \
+            -e JOBHUNT_WEB_SECRET="$secret" -v jobhunt-check-data:/data jobhunt:ci
+          trap 'docker rm -f jobhunt-check; docker volume rm jobhunt-check-data' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8650/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo 'Container health check failed' >&2
+          exit 1

@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Job Hunt",
+    "slug": "job-hunt-agent",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.jobhunt.agent"
+    },
+    "android": {
+      "package": "org.jobhunt.agent"
+    },
+    "plugins": ["expo-secure-store"]
+  }
+}
